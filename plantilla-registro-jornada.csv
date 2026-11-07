@@ -1,0 +1,9 @@
+empleado;fecha;entrada;salida
+# Una fila por tramo. Las líneas que empiezan por # se ignoran: bórralas o déjalas.
+# La fecha admite 2026-01-08 o 08/01/2026. Las horas, HH:MM en reloj de 24 h.
+# Si ese día se paró a comer, son DOS filas (mañana y tarde), como en el ejemplo.
+# Los días que no se trabajó no se ponen: quedan en blanco en la planilla.
+# Nombres válidos: Bayron, Jaime, David, Ale (o el email de la persona).
+# Bayron;2026-01-08;07:58;13:02
+# Bayron;2026-01-08;14:05;17:31
+# Bayron;2026-01-09;08:03;16:59

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Privacidad · BENSOL</title>
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tinta:#14170f; --papel:#f5f4ef; --verde:#206028;
+  --t2:rgba(20,23,15,.62); --l2:rgba(20,23,15,.14);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--papel);color:var(--tinta)}
+body{font-family:'Barlow',system-ui,-apple-system,sans-serif;font-size:16px;-webkit-font-smoothing:antialiased}
+main{max-width:760px;margin:0 auto;padding-inline:clamp(18px,5vw,32px);padding-block:44px 72px}
+.marca{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+.marca img{width:26px;height:26px;border-radius:7px}
+.marca span{font:700 12px/1 ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--t2)}
+h1{font:700 clamp(32px,6vw,46px)/1 'Barlow Semi Condensed',system-ui,sans-serif;margin:0 0 8px;letter-spacing:-.01em}
+.fecha{font:400 13px/1.4 'Barlow',sans-serif;color:var(--t2);margin-bottom:30px}
+h2{font:700 21px/1.2 'Barlow Semi Condensed',system-ui,sans-serif;margin:32px 0 10px}
+p,li{font:400 15.5px/1.6 'Barlow',sans-serif;color:var(--tinta);margin:0 0 12px}
+ul{padding-left:20px;margin:0 0 12px}
+a{color:var(--verde)}
+.caja{background:#fff;border-radius:16px;padding:18px 20px;box-shadow:0 2px 8px rgba(20,23,15,.06);margin:18px 0}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--l2);font:400 13px/1.5 'Barlow',sans-serif;color:var(--t2)}
+</style>
+</head>
+<body>
+<main>
+  <div class="marca"><img src="icon-192.png" alt=""><span>BENSOL Ingeniería y Construcción</span></div>
+  <h1>Política de privacidad</h1>
+  <div class="fecha">Última actualización: 16 de septiembre de 2026</div>
+
+  <p><strong>BENSOL</strong> usa esta aplicación interna para el control horario, los partes de trabajo y la preparación de presupuestos de su propio equipo. No es una aplicación abierta al público: solo entran las personas de la empresa con su usuario y su PIN.</p>
+
+  <h2>Qué datos se guardan</h2>
+  <ul>
+    <li><strong>De los empleados:</strong> nombre, correo de acceso, teléfono, rol, fichajes, horas imputadas, ausencias y planillas firmadas.</li>
+    <li><strong>De las obras y los partes:</strong> descripción del trabajo, horas, materiales, fotos y la firma del cliente.</li>
+    <li><strong>De los clientes y las visitas:</strong> nombre, contacto, dirección de la visita y los datos técnicos que se toman para preparar un presupuesto.</li>
+  </ul>
+  <p>Todo ello se guarda en <strong>Supabase</strong>, el servidor de la empresa, con acceso restringido por permisos: cada persona ve lo que le corresponde por su rol.</p>
+
+  <h2>Uso de Google Drive</h2>
+  <div class="caja">
+    <p>La aplicación puede subir a Google Drive <strong>las planillas de horas firmadas</strong>, en PDF, para archivarlas.</p>
+    <p>Para eso pide el permiso <code>drive.file</code>, que es el más limitado de Google Drive: da acceso <strong>únicamente a los archivos que la propia aplicación crea</strong>. La aplicación no puede ver, abrir ni modificar ningún otro archivo ni carpeta de tu Drive.</p>
+    <p>Ese permiso lo concede una sola vez la persona responsable de la empresa y puede retirarse cuando quiera desde <a href="https://myaccount.google.com/permissions">la página de permisos de la cuenta de Google</a>.</p>
+  </div>
+
+  <h2>Con quién se comparten</h2>
+  <p>Con nadie ajeno a la empresa. Los datos no se venden ni se ceden a terceros con fines publicitarios. Se usan estos servicios como herramientas de trabajo:</p>
+  <ul>
+    <li><strong>Supabase:</strong> base de datos y archivos.</li>
+    <li><strong>Resend:</strong> envío de correos (partes de trabajo y avisos de citas).</li>
+    <li><strong>Google Drive:</strong> copia de las planillas firmadas, si está activado.</li>
+  </ul>
+  <p>Los partes de trabajo se envían por correo al cliente correspondiente, porque es el documento que acredita el trabajo realizado.</p>
+
+  <h2>Cuánto tiempo se conservan</h2>
+  <p>El registro de jornada se conserva cuatro años, como exige la ley española. El resto de datos se guarda mientras sean necesarios para la actividad de la empresa.</p>
+
+  <h2>Tus derechos</h2>
+  <p>Cualquier persona cuyos datos estén en la aplicación puede pedir acceder a ellos, corregirlos o eliminarlos escribiendo a la dirección de contacto.</p>
+
+  <h2>Contacto</h2>
+  <p>BENSOL · <a href="mailto:info@bensolic.es">info@bensolic.es</a></p>
+
+  <footer>
+    <a href="./">Volver a la aplicación</a>
+  </footer>
+</main>
+</body>
+</html>
