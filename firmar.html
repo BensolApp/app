@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Presupuesto · BENSOL</title>
+<link rel="icon" href="icono-192.png">
+<style>
+body{margin:0;background:#f5f4ef;font-family:Arial,Helvetica,sans-serif;color:#14170f}
+.w{max-width:720px;margin:0 auto;padding:22px 14px 60px}
+.c{background:#fff;border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(20,23,15,.06)}
+h1{font-size:24px;margin:0 0 6px}h2{font-size:15px;margin:18px 0 8px;color:#555;text-transform:uppercase;letter-spacing:.06em}
+.sub{color:#666;font-size:14px}.l{padding:10px 0;border-bottom:1px solid #eee;overflow:hidden}.l .n{font-weight:600;font-size:15px}.l .d{color:#555;font-size:13px;margin-top:3px;white-space:pre-wrap}
+.l .q{color:#777;font-size:12px;margin-top:4px}.l .p{float:right;font-weight:600;font-size:15px;margin-left:12px}
+.t{display:flex;justify-content:space-between;padding:6px 0;font-size:15px}.t.big{font-size:21px;font-weight:700;border-top:2px solid #14170f;padding-top:12px;margin-top:8px}
+.inp{width:100%;box-sizing:border-box;padding:13px 14px;border:1.5px solid #d9d8d2;border-radius:12px;font-size:16px;margin-top:8px;font-family:inherit}
+.firma{position:relative;margin-top:10px;border:1.5px dashed #b9b8b1;border-radius:14px;background:#fafaf7;height:190px}
+.firma canvas{width:100%;height:100%;display:block;touch-action:none}
+.firma .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#999;pointer-events:none;font-size:14px}
+.btn{display:block;width:100%;padding:16px;border:0;border-radius:14px;background:#206028;color:#fff;font-size:17px;font-weight:600;margin-top:16px;cursor:pointer;font-family:inherit}
+.btn[disabled]{opacity:.5}.lnk{display:inline-block;margin-top:10px;color:#164a1d;font-weight:600}
+.ok{background:#eaf3ec;border:1.5px solid #206028;border-radius:14px;padding:16px;font-size:15px}
+.err{color:#a8402a;font-size:14px;margin-top:10px}
+small.cond{display:block;margin-top:14px;color:#666;font-size:12px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="w" id="app"><div class="c"><img src="logo-email.png" alt="BENSOL" style="height:40px"><p class="sub" style="margin-top:16px">Cargando el presupuesto…</p></div></div>
+<script>
+(function () {
+  var FUNC = 'https://qmlweijcckzdtnebhbdj.supabase.co/functions/v1/presupuesto-cliente';
+  var t = new URLSearchParams(location.search).get('t') || '';
+  var app = document.getElementById('app');
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  // La página en el idioma en que se mandó el presupuesto (6-11-2026): es, en, ca, de.
+  var LOC = { es: 'es-ES', en: 'en-GB', ca: 'ca-ES', de: 'de-DE' };
+  var TXT = {
+    es: { cargando: 'Cargando el presupuesto…', enlace: 'Enlace no válido.', num: 'nº', enviado: 'enviado el', valido: 'válido hasta el', pdf: 'Descargar el PDF', pdf_firmado: 'Descargar el PDF firmado', ya: '✓ Este presupuesto ya está aceptado y firmado por <b>{n}</b> el {f}. Gracias por confiar en BENSOL.', seccion: 'Presupuesto', suma: 'Suma', dto: 'Descuento', base: 'Base imponible', iva: 'IVA 21 %', total: 'Total', aceptar: 'Aceptar y firmar', como: 'Si está conforme, escriba su nombre, firme con el dedo o el ratón y pulse el botón. Recibirá copia por correo y nosotros el aviso.', nombre: 'Nombre y apellidos', dni: 'DNI / NIE', firme: 'Firme aquí', borrar: 'Borrar la firma', leido: 'He leído el presupuesto y acepto sus condiciones.', btn: 'Firmar y aceptar el presupuesto', e_nombre: 'Escriba su nombre.', e_dni: 'Escriba un DNI, NIE o CIF válido.', e_firma: 'Falta la firma.', e_casilla: 'Marque la casilla de aceptación.', enviando: 'Enviando…', hecho: '✓ Presupuesto aceptado y firmado. Gracias, {n}. Le hemos enviado copia por correo y nos pondremos en contacto para empezar.', e_envio: 'No se pudo enviar: ' },
+    en: { cargando: 'Loading the quotation…', enlace: 'Invalid link.', num: 'no.', enviado: 'sent on', valido: 'valid until', pdf: 'Download the PDF', pdf_firmado: 'Download the signed PDF', ya: '✓ This quotation has already been accepted and signed by <b>{n}</b> on {f}. Thank you for trusting BENSOL.', seccion: 'Quotation', suma: 'Subtotal', dto: 'Discount', base: 'Net amount', iva: 'VAT 21 %', total: 'Total', aceptar: 'Accept and sign', como: 'If you agree, type your name, sign with your finger or mouse and press the button. You will receive a copy by email and we will be notified.', nombre: 'Full name', dni: 'ID / passport number', firme: 'Sign here', borrar: 'Clear the signature', leido: 'I have read the quotation and accept its terms.', btn: 'Sign and accept the quotation', e_nombre: 'Please type your name.', e_dni: 'Please type a valid ID or passport number.', e_firma: 'The signature is missing.', e_casilla: 'Please tick the acceptance box.', enviando: 'Sending…', hecho: '✓ Quotation accepted and signed. Thank you, {n}. We have emailed you a copy and will contact you to get started.', e_envio: 'Could not send: ' },
+    ca: { cargando: 'Carregant el pressupost…', enlace: 'Enllaç no vàlid.', num: 'núm.', enviado: 'enviat el', valido: 'vàlid fins al', pdf: 'Descarregar el PDF', pdf_firmado: 'Descarregar el PDF signat', ya: '✓ Aquest pressupost ja està acceptat i signat per <b>{n}</b> el {f}. Gràcies per confiar en BENSOL.', seccion: 'Pressupost', suma: 'Suma', dto: 'Descompte', base: 'Base imposable', iva: 'IVA 21 %', total: 'Total', aceptar: 'Acceptar i signar', como: 'Si hi està conforme, escrigui el seu nom, signi amb el dit o el ratolí i premi el botó. Rebrà una còpia per correu i nosaltres l’avís.', nombre: 'Nom i cognoms', dni: 'DNI / NIE', firme: 'Signi aquí', borrar: 'Esborrar la signatura', leido: 'He llegit el pressupost i n’accepto les condicions.', btn: 'Signar i acceptar el pressupost', e_nombre: 'Escrigui el seu nom.', e_dni: 'Escrigui un DNI, NIE o CIF vàlid.', e_firma: 'Falta la signatura.', e_casilla: 'Marqui la casella d’acceptació.', enviando: 'Enviant…', hecho: '✓ Pressupost acceptat i signat. Gràcies, {n}. Li hem enviat una còpia per correu i ens posarem en contacte per començar.', e_envio: 'No s’ha pogut enviar: ' },
+    de: { cargando: 'Angebot wird geladen…', enlace: 'Ungültiger Link.', num: 'Nr.', enviado: 'gesendet am', valido: 'gültig bis', pdf: 'PDF herunterladen', pdf_firmado: 'Unterschriebenes PDF herunterladen', ya: '✓ Dieses Angebot wurde bereits von <b>{n}</b> am {f} angenommen und unterschrieben. Vielen Dank für Ihr Vertrauen in BENSOL.', seccion: 'Angebot', suma: 'Zwischensumme', dto: 'Rabatt', base: 'Nettobetrag', iva: 'MwSt. 21 %', total: 'Gesamt', aceptar: 'Annehmen und unterschreiben', como: 'Wenn Sie einverstanden sind, geben Sie Ihren Namen ein, unterschreiben Sie mit dem Finger oder der Maus und drücken Sie die Taste. Sie erhalten eine Kopie per E-Mail und wir werden benachrichtigt.', nombre: 'Vor- und Nachname', dni: 'Ausweis- / Passnummer', firme: 'Hier unterschreiben', borrar: 'Unterschrift löschen', leido: 'Ich habe das Angebot gelesen und akzeptiere die Bedingungen.', btn: 'Angebot unterschreiben und annehmen', e_nombre: 'Bitte geben Sie Ihren Namen ein.', e_dni: 'Bitte geben Sie eine gültige Ausweis- oder Passnummer ein.', e_firma: 'Die Unterschrift fehlt.', e_casilla: 'Bitte bestätigen Sie die Annahme.', enviando: 'Wird gesendet…', hecho: '✓ Angebot angenommen und unterschrieben. Vielen Dank, {n}. Wir haben Ihnen eine Kopie per E-Mail geschickt und melden uns, um zu beginnen.', e_envio: 'Senden fehlgeschlagen: ' },
+  };
+  var idioma = 'es', T = TXT.es;
+  var rellena = function (t, v) { return String(t).replace(/\{(\w+)\}/g, function (_, k) { return v[k] == null ? '' : String(v[k]); }); };
+  var eur = function (n) { return (Number(n) || 0).toLocaleString(LOC[idioma], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'; };
+  var fecha = function (iso) { return iso ? new Date(iso).toLocaleDateString(LOC[idioma], { day: 'numeric', month: 'long', year: 'numeric' }) : ''; };
+  function fallo(msg) { app.innerHTML = '<div class="c"><img src="logo-email.png" alt="BENSOL" style="height:40px"><p class="sub" style="margin-top:16px">' + esc(msg) + '</p></div>'; }
+  if (!t) { fallo(T.enlace); return; }
+  fetch(FUNC + '?t=' + encodeURIComponent(t) + '&json=1').then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); }).then(function (x) {
+    if (!x.ok) throw new Error(x.j.error || 'Este enlace ya no está disponible.');
+    if (x.j.idioma && TXT[x.j.idioma]) { idioma = x.j.idioma; T = TXT[idioma]; document.documentElement.lang = idioma; }
+    pinta(x.j);
+  }).catch(function (e) { fallo(e.message); });
+
+  function pinta(d) {
+    var p = d.presupuesto, lineas = d.lineas || [], firmado = !!p.firmado_at;
+    var secciones = [];
+    lineas.forEach(function (l) { var n = l.seccion || T.seccion; var s = null; for (var i = 0; i < secciones.length; i++) if (secciones[i].nombre === n) s = secciones[i]; if (!s) { s = { nombre: n, lineas: [] }; secciones.push(s); } s.lineas.push(l); });
+    var h = '<div class="c"><img src="logo-email.png" alt="BENSOL" style="height:40px"><h1 style="margin-top:14px">' + esc(p.titulo) + '</h1>'
+      + '<div class="sub">' + esc(d.cliente || '') + (p.tl_numero ? ' · ' + T.num + ' ' + esc(p.tl_numero) : '') + (p.enviado_correo_at ? ' · ' + T.enviado + ' ' + fecha(p.enviado_correo_at) : '') + (d.vence ? ' · ' + T.valido + ' ' + fecha(d.vence) : '') + '</div>'
+      + (d.pdf_url ? '<a class="lnk" href="' + esc(d.pdf_url) + '" target="_blank" rel="noopener">' + (firmado ? T.pdf_firmado : T.pdf) + '</a>' : '') + '</div>';
+    if (firmado) h += '<div class="c"><div class="ok">' + rellena(T.ya, { n: esc(p.firma_nombre), f: fecha(p.firmado_at) }) + '</div></div>';
+    h += '<div class="c">' + secciones.map(function (s) { return '<h2>' + esc(s.nombre) + '</h2>' + s.lineas.map(function (l) { return '<div class="l"><span class="p">' + eur(l.precio_venta) + '</span><div class="n">' + esc(l.descripcion) + '</div>' + (l.detalle_tecnico ? '<div class="d">' + esc(l.detalle_tecnico) + '</div>' : '') + '<div class="q">' + esc(l.cantidad) + ' ' + esc(l.unidad || 'ud') + ' × ' + eur(l.precio_tarifa) + (Number(l.dto_linea_pct) ? ' · −' + esc(l.dto_linea_pct) + ' %' : '') + '</div></div>'; }).join(''); }).join('')
+      + '<div style="margin-top:14px">' + (d.totales.dto_global_pct ? '<div class="t"><span>' + T.suma + '</span><span>' + eur(d.totales.bruto) + '</span></div><div class="t"><span>' + T.dto + ' ' + esc(d.totales.dto_global_pct) + ' %</span><span>−' + eur(d.totales.bruto - d.totales.base) + '</span></div>' : '')
+      + '<div class="t"><span>' + T.base + '</span><span>' + eur(d.totales.base) + '</span></div><div class="t"><span>' + T.iva + '</span><span>' + eur(d.totales.iva) + '</span></div><div class="t big"><span>' + T.total + '</span><span>' + eur(d.totales.total) + '</span></div></div>'
+      + '<small class="cond">' + esc(d.condiciones || '') + '</small></div>';
+    if (!firmado) h += '<div class="c" id="aceptar"><h1 style="font-size:20px">' + T.aceptar + '</h1><div class="sub">' + T.como + '</div>'
+      + '<input class="inp" id="nombre" placeholder="' + T.nombre + '" autocomplete="name"><input class="inp" id="dni" placeholder="' + T.dni + '" autocomplete="off">'
+      + '<div class="firma"><canvas id="cv"></canvas><div class="ph" id="ph">' + T.firme + '</div></div><a class="lnk" href="#" id="borrar" style="font-weight:400;font-size:13px">' + T.borrar + '</a>'
+      + '<label style="display:block;margin-top:14px;font-size:14px"><input type="checkbox" id="acepto"> ' + T.leido + '</label>'
+      + '<button class="btn" id="btn">' + T.btn + '</button><div class="err" id="err"></div></div>';
+    app.innerHTML = h;
+    if (firmado) return;
+    var cv = document.getElementById('cv'), ctx = cv.getContext('2d'), ph = document.getElementById('ph'), hay = false, dib = false;
+    function tam() { var r = cv.getBoundingClientRect(); cv.width = Math.round(r.width * 2); cv.height = Math.round(r.height * 2); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#14170f'; }
+    tam(); window.addEventListener('resize', tam);
+    function pos(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * (cv.width / r.width), (e.clientY - r.top) * (cv.height / r.height)]; }
+    cv.addEventListener('pointerdown', function (e) { e.preventDefault(); dib = true; cv.setPointerCapture(e.pointerId); var q = pos(e); ctx.beginPath(); ctx.moveTo(q[0], q[1]); });
+    cv.addEventListener('pointermove', function (e) { if (!dib) return; e.preventDefault(); var q = pos(e); ctx.lineTo(q[0], q[1]); ctx.stroke(); hay = true; ph.style.display = 'none'; });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) { cv.addEventListener(ev, function () { dib = false; }); });
+    document.getElementById('borrar').addEventListener('click', function (e) { e.preventDefault(); ctx.clearRect(0, 0, cv.width, cv.height); hay = false; ph.style.display = ''; });
+    document.getElementById('btn').addEventListener('click', function () {
+      var err = document.getElementById('err'); err.textContent = '';
+      var nombre = document.getElementById('nombre').value.trim();
+      if (nombre.length < 3) { err.textContent = T.e_nombre; return; }
+      var dni = document.getElementById('dni').value.trim().toUpperCase().replace(/[\s.-]/g, '');
+      // En español, DNI/NIE/CIF; en otro idioma vale también un pasaporte o documento extranjero (5 a 20 letras y cifras).
+      var dniBien = /^([XYZ]?\d{7,8}[A-Z])$/.test(dni) || /^[A-Z]\d{7}[A-Z0-9]$/.test(dni) || (idioma !== 'es' && /^[A-Z0-9]{5,20}$/.test(dni));
+      if (!dniBien) { err.textContent = T.e_dni; return; }
+      if (!hay) { err.textContent = T.e_firma; return; }
+      if (!document.getElementById('acepto').checked) { err.textContent = T.e_casilla; return; }
+      var b = document.getElementById('btn'); b.disabled = true; b.textContent = T.enviando;
+      fetch(FUNC, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accion: 'firmar', t: t, nombre: nombre, dni: dni, firma: cv.toDataURL('image/png') }) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (x) { if (!x.ok) throw new Error(x.j.error || 'error'); document.getElementById('aceptar').innerHTML = '<div class="ok">' + rellena(T.hecho, { n: esc(nombre) }) + '</div>'; window.scrollTo(0, 0); })
+        .catch(function (e) { err.textContent = T.e_envio + e.message; b.disabled = false; b.textContent = T.btn; });
+    });
+  }
+})();
+</script>
+</body>
+</html>
