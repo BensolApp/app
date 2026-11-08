@@ -307,7 +307,7 @@ body.con-captcha #captcha{display:block}
 /* Tablero de clientes por fases (sql/etapa71): columnas con scroll lateral. */
 /* El tablero volteado verticalmente, y su contenido vuelto a voltear: así la barra
    de desplazamiento horizontal sale ARRIBA y no hay que bajar al final para verla
-   (Enzo, 16-10-2026). Con el ratón también se arrastra el fondo como si fuera táctil. */
+   (16-10-2026). Con el ratón también se arrastra el fondo como si fuera táctil. */
 .tb-wrap{overflow:auto;-webkit-overflow-scrolling:touch;margin:0 -16px;padding:0 16px 4px;cursor:grab;flex:1;min-height:0}
 /* El tablero ocupa lo que queda de pantalla y es él quien hace scroll (21-10-2026):
    así la cabecera de cada columna se queda fija arriba y solo suben las tarjetas. */
@@ -318,7 +318,7 @@ body.con-captcha #captcha{display:block}
 .tb-cols{display:flex;gap:10px;align-items:flex-start;min-width:max-content}
 .tb-col{width:252px;flex:none;background:color-mix(in srgb,var(--col,var(--tinta)) 9%,#f6f6f1);border-radius:16px;padding:10px;border-top:4px solid var(--col,var(--tinta))}
 @supports not (background:color-mix(in srgb,red 9%,white)){.tb-col{background:rgba(20,23,15,.04)}}
-/* Título de columna grande y en el color de la fase (Enzo, 16-10-2026). */
+/* Título de columna grande y en el color de la fase (16-10-2026). */
 .tb-cab{display:flex;justify-content:space-between;align-items:baseline;gap:8px;position:sticky;top:0;z-index:2;background:inherit;margin:-10px -10px 10px;padding:12px 10px 8px;border-radius:16px 16px 0 0}
 .tb-tit{font:600 17px/1.15 var(--cond);color:var(--col,var(--tinta));letter-spacing:.01em}
 .tb-n{display:inline-block;min-width:22px;padding:1px 7px;border-radius:99px;background:var(--col,var(--tinta));color:#fff;font:600 12px/18px var(--mono);text-align:center;vertical-align:2px}
@@ -1142,7 +1142,7 @@ const yo = () => (V.user ? S.users.find((u) => u.id === V.user.id) : null);
 const rol = () => { const u = yo(); return u ? u.rol : null; };
 const esAdmin = () => rol() === 'admin';
 const puedeCrear = () => ['admin', 'jefe'].includes(rol());
-// Presupuestos (Ramón): toma datos en casa del cliente. No ficha ni hace partes.
+// Presupuestos (presupuestos): toma datos en casa del cliente. No ficha ni hace partes.
 // El colaborador (sql/etapa76, Pedro) hace lo mismo, pero solo con los clientes
 // que presupuestos o Administración le asignan: por eso cuenta como
 // esPresupuestos() en el flujo (agenda, citas, visitas, presupuestos) y se le
@@ -1161,7 +1161,7 @@ const puedeObras = () => esComercial();
 // el operario, de la que tiene planificada hoy (sql/etapa61: partes_insert).
 const planificadoHoyEn = (obraId) => (V.planMio || []).some((f) => f.obra_id === obraId && f.fecha === hoyISO());
 const puedeParteDe = (obraId) => puedeCrear() || planificadoHoyEn(obraId);
-// La agenda de Ramón es cosa suya y de Administración: los jefes de obra tienen
+// La agenda de presupuestos es cosa suya y de Administración: los jefes de obra tienen
 // lo suyo. Va también en las políticas de Supabase (sql/etapa33), no solo aquí.
 const verAgenda = () => ['presupuestos', 'colaborador', 'admin'].includes(rol());
 // El motor de presupuestos es de presupuestos y Administración (sql/etapa40).
@@ -1228,7 +1228,7 @@ function avatarHTML(userId, estilo, attrs, clases) {
 }
 // Marca pequeña (logo oficial + "BENSOL") para cabeceras internas. Reutiliza
 // icon-512.png?v=4 (el mismo icono ya usado como icono de la app/PWA).
-// Junto a la marca, un icono para abrir la pantalla en otra pestaña (Enzo,
+// Junto a la marca, un icono para abrir la pantalla en otra pestaña (
 // 30-10-2026): en ordenador, para poner dos presupuestos o dos clientes uno al
 // lado del otro. En la app instalada del móvil no sale (abriría el navegador).
 const abrirAparteIcono = (oscuro) => (window.innerWidth >= 600 || !enAppInstalada()
@@ -1469,7 +1469,7 @@ A.resumenNav = (delta) => {
 
 /* --- imputación de horas --- */
 // Lo que los partes de ese día dicen de una persona: por obra, en minutos
-// redondeados a 15. Es el punto de partida al imputar: si Pau firmó 6 h en
+// redondeados a 15. Es el punto de partida al imputar: si un operario firmó 6 h en
 // OB-137, eso ya viene puesto y el jefe solo confirma o ajusta.
 function horasDePartesDia(userId, fecha) {
   const porObra = {};
@@ -1797,7 +1797,7 @@ A.impCat = (i, cat) => {
   render();
 };
 A.impObra = (i, obraId) => { const l = V.impDraft[i]; if (l) { l.obraId = obraId || null; render(); } };
-/* El selector de obra de la imputación (Enzo, 4-11-2026): en vez de todas las
+/* El selector de obra de la imputación (4-11-2026): en vez de todas las
    obras en chips, un botón con la elegida (nombre y dirección) que abre una
    hoja con buscador y la lista ordenada por número, la más nueva arriba. */
 function selObraHTML(obraId, para, i, editable) {
@@ -3004,7 +3004,7 @@ function vFasesPlantillas() {
 /* ---------- planificación diaria: quién va mañana a dónde (sql/etapa60) ----------
  * Tablero semanal para los comerciales: filas = personas (operarios y jefes),
  * columnas = días. Cada operario ve en «Hoy» lo suyo. Se planifica por
- * personas sueltas (decidido con Enzo, 2 oct 2026).
+ * personas sueltas (2 oct 2026).
  * -------------------------------------------------------------------------------- */
 Object.assign(V, { plan: { lunes: null, dia: null, finde: false, filas: [], cargado: false, cargando: false, error: null, fuera: [] }, planMio: [], planCargado: false });
 const faltaEtapa60 = (e) => /planificacion|schema cache|PGRST205/i.test(typeof e === 'string' ? e : msgError(e));
@@ -4140,7 +4140,7 @@ function descargarArchivo(blob, nombre) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
-// Guardar el PDF que se está viendo como archivo, con su nombre (Enzo, 28-10-2026).
+// Guardar el PDF que se está viendo como archivo, con su nombre (28-10-2026).
 A.pdfDescargar = () => {
   const c = pdfParaCompartir; if (!c || !c.archivo) { avisar('No hay PDF preparado.'); return; }
   descargarArchivo(c.archivo, c.archivo.name || (V.sheet && V.sheet.nombre) || 'documento.pdf');
@@ -4478,7 +4478,7 @@ A.instalar = async () => {
 
 /* ---------- render ---------- */
 function render() {
-  // Ramón entra directo a sus visitas: ninguna pantalla de fichar, obras ni partes.
+  // presupuestos entra directo a sus visitas: ninguna pantalla de fichar, obras ni partes.
   if (V.user && esPresupuestos() && !VISITA_VISTAS.includes(V.view) && !(!esColaborador() && ['legalizaciones', 'legalizacion', 'obras', 'obra', 'alta', 'costesPersonal', 'planificacion'].includes(V.view))) {
     V.view = 'agenda';
     if (!V.agenda.cargado) A.cargarAgenda();
@@ -4557,7 +4557,7 @@ function render() {
   if (actualizacionPendiente && !enFaena() && cartelActualizarFn) { actualizacionPendiente = false; cartelActualizarFn(); }
 }
 
-/* ---------- el parte a medias sobrevive a una recarga (Enzo, 20-10-2026) -------
+/* ---------- el parte a medias sobrevive a una recarga (20-10-2026) -------
  * El jefe de obra estaba haciendo un parte, saltaba el cartel de actualizar y
  * al recargar perdía todo. Ahora (1) el cartel espera a que no haya nada a
  * medias (ver enFaena) y (2) el parte se guarda en el móvil a cada cambio y se
@@ -4589,7 +4589,7 @@ function restaurarBorradorParte() {
 const enFaena = () => /^p[123]$/.test(V.view)
   || ['alta', 'visitaNueva', 'imputar', 'imputarGrupo', 'imputarEmp', 'presuNuevo', 'clienteNuevo', 'citaNueva'].includes(V.view)
   || !!V.sheet || !!V.presuEdit || !!V.parteBusy || !!V.visitaBusy   // la cita a medias va en una hoja: ya cuenta con V.sheet
-  // Un presupuesto en marcha (Enzo, 6-11-2026: el cartel le cortó uno a medias y
+  // Un presupuesto en marcha (6-11-2026: el cartel le cortó uno a medias y
   // lo perdió): calculando, guardando, con un resultado sin guardar o con un
   // conjunto a medias. El cartel espera a que se guarde o se cierre.
   || !!(V.presu && (V.presu.cargando || V.presu.guardando || (V.presu.datos && !V.presu.guardado) || Object.keys(V.presu.fusion || {}).length))
@@ -4642,7 +4642,7 @@ const SVG_HOJA = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" ar
 function vLogin() {
   const avc = (r) => r === 'jefe' ? 'background:var(--verde-c);color:#fff' : 'background:rgba(255,255,255,.18);color:#fff';
   // Administración fuera de la lista: se entra por la tuerca.
-  // Orden fijo (Enzo, 2-11-2026): jefes de obra arriba, luego operarios, al final
+  // Orden fijo (2-11-2026): jefes de obra arriba, luego operarios, al final
   // presupuestos (y colaboradores); dentro de cada grupo, por nombre.
   const ORDEN_ROL = { jefe: 0, operario: 1, presupuestos: 2, colaborador: 3 };
   const gente = S.users.filter((u) => u.activo !== false && u.rol !== 'admin')
@@ -4683,7 +4683,7 @@ function vOtroUsuario() {
     <div style="font:600 27px/1.1 var(--cond);color:#fff;margin-top:18px">Entra con tu nombre</div>
     <div class="sub" style="color:rgba(255,255,255,.5);margin-top:8px">Para la primera vez en este móvil. Después ya sales en la lista.</div>
     <div class="lbl" style="color:rgba(255,255,255,.4);margin:26px 0 8px">Tu nombre o tu email</div>
-    <input class="inp" id="login-nombre" data-f="loginNombre" value="${esc(V.loginNombre || '')}" placeholder="Ramon" autocapitalize="words" autocomplete="off" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff">
+    <input class="inp" id="login-nombre" data-f="loginNombre" value="${esc(V.loginNombre || '')}" placeholder="Tu nombre" autocapitalize="words" autocomplete="off" style="background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#fff">
     <button class="btn btn-verde" data-a="otroUsuarioSeguir" style="margin-top:16px">Seguir</button>
     <div class="tiny" style="text-align:center;margin-top:22px;color:rgba(255,255,255,.32)">Versión ${APP_VERSION}</div>
   </div>`;
@@ -6237,17 +6237,12 @@ function vAjustes() {
     </div>` : ''}
     ${esAdmin() ? `<div class="card" style="margin-top:14px">
       <div class="lbl">Legalizaciones · datos fijos</div>
-      <div class="sub" style="font-size:12px;margin-top:4px">Salen en cada certificado. El correo es a donde llegan los PDF (Xavi).</div>
+      <div class="sub" style="font-size:12px;margin-top:4px">Salen en cada certificado. El correo es a donde llegan los PDF.</div>
       ${[['email_legalizaciones', 'Correo de legalizaciones', 'email'], ['instalador_razon_social', 'Razón social de la empresa instaladora', 'text'], ['instalador_numero', 'Nº de instalador autorizado', 'text'], ['instalador_nombre', 'Nombre del instalador', 'text'], ['instalador_nif', 'DNI / NIF del instalador', 'text'], ['instalador_direccion', 'Dirección', 'text'], ['instalador_cp_localidad', 'CP y localidad', 'text'], ['instalador_telefono', 'Teléfono', 'text'], ['aparato_verificador', 'Aparato verificador (marca, modelo y nº de serie)', 'text']]
         .map(([k, et, tipo]) => `<input class="inp" data-f="legEmpresa" data-k="${k}" type="${tipo}" value="${esc((S.leg || {})[k] || '')}" placeholder="${esc(et)}" style="margin-top:8px" autocapitalize="off">`).join('')}
       <button class="pill" data-a="legGuardarEmpresa" style="margin-top:12px;padding:11px;width:100%;text-align:center;background:var(--tinta);color:#fff">Guardar</button>
     </div>` : ''}
 
-    <a class="card row" href="manual/index.html" style="margin-top:14px;text-decoration:none;color:inherit">
-      <div class="grow"><div style="font:600 15px var(--sans)">Manual de la app</div>
-      <div class="sub" style="font-size:12px;margin-top:4px">Cómo se usa, paso a paso y con pantallas, para ${esAdmin() ? 'cada tipo de usuario' : 'lo tuyo'}. Arriba tiene un botón para volver aquí.</div></div>
-      <div style="font:400 20px/1 var(--sans);color:var(--t3)">›</div>
-    </a>
 
     ${esAdmin() ? `<div class="card row" data-a="abrirErrores" style="margin-top:14px;cursor:pointer">
       <div class="grow"><div style="font:600 15px var(--sans)">Fallos</div>
@@ -6566,7 +6561,7 @@ function montarFirmaPlanilla() {
 }
 
 /* --- el documento del parte tal como lo verá el cliente: en el paso 2, antes de
- * firmar (con «Firma pendiente» en su casilla; Enzo, 20-10-2026: el cliente
+ * firmar (con «Firma pendiente» en su casilla; 20-10-2026: el cliente
  * quiere ver lo que firma), y en el paso 3 ya firmado. --- */
 function docParteHTML(d, previa) {
   const o = obraById(d.obraId) || { titulo: '—' };
@@ -6643,9 +6638,9 @@ function vOk() {
 }
 
 /* =============================================================================
- * TOMA DE DATOS · rol presupuestos (Ramón)
+ * TOMA DE DATOS · rol presupuestos (presupuestos)
  *
- * Ramón no ficha, no ve obras, no hace partes ni firma. Rellena la visita en
+ * presupuestos no ficha, no ve obras, no hace partes ni firma. Rellena la visita en
  * cinco pasos y la manda a Teamleader, que es donde se hace el presupuesto.
  * Los cuestionarios viven en visitas-schemas.js; aquí solo están las
  * pantallas y las acciones. Ver TOMA-DATOS.md.
@@ -6662,7 +6657,9 @@ const VISITA_VISTAS = ['visitas', 'visita', 'visitaNueva', 'ajustes', 'presupues
 const PASOS_VISITA = ['Cliente', 'El inmueble', '¿Qué se presupuesta?', 'Fichas', 'Cierre'];
 const KEY_VISITA = 'bensol.visita.borrador';
 const CAMPOS_COMUN = vSchemas.COMUN.secciones.flatMap((s) => s.campos);
-const nombreCat = (c) => (vSchemas.CATEGORIAS.find((x) => x.key === c) || { nombre: c }).nombre;
+// Categorías de BENSOL para presupuestos subidos en PDF (no tienen ficha de visita ni motor).
+const CATS_PDF = [{ key: 'obra', nombre: 'Obra / reforma' }, { key: 'instalaciones', nombre: 'Instalaciones' }, { key: 'mantenimiento', nombre: 'Mantenimiento' }];
+const nombreCat = (c) => (vSchemas.CATEGORIAS.concat(CATS_PDF).find((x) => x.key === c) || { nombre: c }).nombre;
 const msgError = (e) => (e && e.message) || 'error desconocido';
 const inicialesCli = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
 const tipoCliente = (c) => (c && c.tl_tipo === 'company' ? 'Empresa' : 'Particular');
@@ -6694,7 +6691,7 @@ function limpiarBorradorVisita() {
   V.visitaDraft = null; V.visitaFichas = {}; V.visitaFotos = {}; V.visitaAdjuntos = []; V.visitaCat = null;
 }
 
-/* Visitas a medias aparcadas en el móvil (Enzo, 20-10-2026): se puede empezar
+/* Visitas a medias aparcadas en el móvil (20-10-2026): se puede empezar
  * otra visita sin terminar la que hay. La activa se aparta tal cual (con sus
  * fotos) y se retoma desde la ficha del cliente o desde Visitas → Sin cerrar. */
 const KEY_VISITA_APARCADAS = 'bensol.visita.aparcadas';
@@ -6843,7 +6840,7 @@ A.descartarBorrador = () => {
   toast('Visita descartada.');
   render();
 };
-/* ---------- cancelar la visita desde dentro (Enzo, 27-10-2026) ---------- */
+/* ---------- cancelar la visita desde dentro (27-10-2026) ---------- */
 A.visitaCancelarAbrir = () => {
   const d = V.visitaDraft; if (!d) return;
   const guardada = (V.visitas || []).find((x) => x.id === d.id) || null;
@@ -7080,7 +7077,7 @@ A.guardarVisita = async (completar, trasGuardar) => {
     toast(completar ? 'Visita cerrada. Ya se puede enviar a Teamleader.' : 'Guardada. La sigues cuando quieras.');
     if (completar) {
       A.cargarVisitas(); await A.verVisita(guardada.id);
-      // El correo de gracias ya no sale solo (Enzo, 3-11-2026): a veces se
+      // El correo de gracias ya no sale solo (3-11-2026): a veces se
       // rellena la ficha sin haber ido de verdad y el cliente no debe recibir
       // nada. Se pregunta, y si se dice que no queda el botón en la ficha.
       V.sheet = { tipo: 'graciasPregunta', id: guardada.id, nombre: (cli && cli.nombre) || '', email: (cli && cli.email) || '' };
@@ -7880,13 +7877,13 @@ function presupuestoHTML(v, fichas) {
  * el margen no se lea como exacto.
  */
 // Quién ve costes y beneficio: Administración siempre; presupuestos en
-// fotovoltaica, para jugar con el descuento y ver el margen real (Enzo).
-// Presupuestos ve coste y beneficio en todas las categorías (Enzo, 26-10-2026; antes solo en FV).
+// fotovoltaica, para jugar con el descuento y ver el margen real.
+// Presupuestos ve coste y beneficio en todas las categorías (26-10-2026; antes solo en FV).
 const veMargenPresu = (_cat) => esAdmin() || rol() === 'presupuestos';
-// El margen objetivo del presupuestador FV v2 (Ramón): 50 % sobre la venta,
+// El margen objetivo del presupuestador FV v2 (presupuestos): 50 % sobre la venta,
 // en verde si se mantiene y en rojo si el descuento lo baja de ahí.
 const MARGEN_OBJETIVO_FV = 50;
-// Tesla va con un margen MÍNIMO del 35 % sobre la venta (Enzo, 16-10-2026): su
+// Tesla va con un margen MÍNIMO del 35 % sobre la venta (16-10-2026): su
 // precio de tarifa ya lo lleva (coste ÷ 0,65) y no se rebaja. Si el descuento al
 // pie lo baja de ahí, se avisa línea a línea. Solo por dentro.
 const MARGEN_MINIMO_TESLA = 35;
@@ -7941,7 +7938,7 @@ function margenLineaHTML(l, cat) {
   </details>`;
   return cab + (desglose.length ? `<div class="tiny" style="margin-top:3px;color:var(--t3)">${desglose.map((x) => esc(x.nombre) + ' ' + esc(String(x.cantidad)) + ' ' + esc(x.unidad || 'ud') + ' · ' + eur(x.coste)).join(' · ')}</div>` : '');
 }
-/** El desglose del presupuestador FV v2 (Ramón): las partidas por bloque con
+/** El desglose del presupuestador FV v2 (presupuestos): las partidas por bloque con
  *  su coste, el precio con margen objetivo, los avisos y el pedido por
  *  proveedor. Solo por dentro: nunca al PDF ni a Teamleader. */
 function desgloseFV2HTML(oi) {
@@ -8093,7 +8090,7 @@ function bateriaBaseFV() {
 }
 /** Los datos con la opción encima. La batería se adapta a la marca, como en el suelto. */
 /** Dónde viven las opciones de fotovoltaica ahora mismo: en el presupuesto
- *  principal si es FV, o en la ficha FV del conjunto (Enzo, 21-10-2026). */
+ *  principal si es FV, o en la ficha FV del conjunto (21-10-2026). */
 function fvObjetivo() {
   const p = V.presu;
   if (p.cat === 'solar') return { holder: p, recalc: () => A.presuCalcular('solar'), conjunto: false };
@@ -8129,7 +8126,7 @@ A.presuOpcionMarca = (m) => {
   p.guardado = null; p.enTL = false; p.errTL = null;
   t.recalc();
 };
-/** La batería de esta opción, sin tocar la ficha (Enzo, 18-10-2026): '' = sin batería, o la marca; kWh aparte. */
+/** La batería de esta opción, sin tocar la ficha (18-10-2026): '' = sin batería, o la marca; kWh aparte. */
 A.presuOpcionBateria = (marca, kwh) => {
   const t = fvObjetivo(); if (!t || V.presu.cargando) return; const p = t.holder;
   if (!enSuelto() && !fichaVisitaActual('solar')) { avisar('Esta visita no tiene ficha de paneles solares: no se puede cambiar la batería.'); return; }
@@ -8226,7 +8223,7 @@ function opcionesAeroHTML() {
       <span class="tiny">La máquina por tramo de potencia; el kit es el mismo.</span>
     </div>
     ${(() => {
-      // Depósito de inercia y acumulador de ACS del catálogo (Enzo, 6-11-2026).
+      // Depósito de inercia y acumulador de ACS del catálogo (6-11-2026).
       const ops = (p.datos && p.datos.opciones_aero) || null; if (!ops) return '';
       const op = p.opcion || {};
       const sel = (clave, lista, actual, etiqueta) => `<span class="lbl" style="font-size:11px">${etiqueta}</span>
@@ -8267,7 +8264,7 @@ function opcionesMarcaHTML() {
       ${MARCAS_FV.map(([k, l]) => `<span class="chip ${actual === k ? 'on' : ''}" data-a="presuOpcionMarca" data-m="${k}" style="cursor:pointer">${l}</span>`).join('')}
     </div>
     ${(() => {
-      // Inversor concreto y paneles a mano (Enzo, 21-10-2026): lo que trae el último cálculo.
+      // Inversor concreto y paneles a mano (21-10-2026): lo que trae el último cálculo.
       const oi = ((p.datos && p.datos.lineas) || []).map((l) => l.origen_inputs).find((o) => o && o.fv2) || null;
       const ops = oi && oi.opciones; if (!ops) return '';
       const op = p.opcion || {};
@@ -8351,7 +8348,7 @@ A.presuCalcular = async (categoria) => {
   p.cargando = false; render();
 };
 
-/* ---------- presupuesto conjunto (Enzo, 21-10-2026) ----------------------------
+/* ---------- presupuesto conjunto (21-10-2026) ----------------------------
  * Una visita con varias fichas (aerotermia + fotovoltaica + aire) se presupuesta
  * en UNA oferta: se calcula la otra categoría con su motor y sus líneas entran
  * en este presupuesto como líneas añadidas, con su precio y su coste, en una
@@ -8475,7 +8472,7 @@ A.presuAnadir = (ref) => {
   p.buscar = ''; p.resultados = [];
   A.presuRecalcular();
 };
-/* ---------- retocar una línea calculada antes de guardar (Enzo, 27-10-2026) ---------- */
+/* ---------- retocar una línea calculada antes de guardar (27-10-2026) ---------- */
 A.presuAjustarAbrir = (clave) => {
   const p = V.presu; if (!p.datos || p.cargando) return;
   const l = (p.datos.lineas || []).find((x) => claveLineaPresu(x) === clave); if (!l) return;
@@ -8515,7 +8512,7 @@ A.presuAjusteDeshacer = () => {
   A.presuRecalcular();
 };
 
-/* ---------- un producto que no está en el catálogo: se crea y se añade (Enzo, 27-10-2026) ---------- */
+/* ---------- un producto que no está en el catálogo: se crea y se añade (27-10-2026) ---------- */
 const FAMILIAS_PROPIAS = [['material', 'Material'], ['equipo', 'Equipo'], ['mano_obra', 'Mano de obra'], ['servicio', 'Servicio'], ['tramite', 'Trámite'], ['otro', 'Otro']];
 A.presuProductoNuevoAbrir = (modo) => {
   // modo 'edit' (6-11-2026): desde la modificación de un presupuesto guardado.
@@ -8561,11 +8558,11 @@ A.presuProductoNuevoGuardar = async () => {
   } catch (e) { s.busy = false; render(); avisar('No se pudo crear: ' + msgError(e)); }
 };
 
-/** Quitar una línea del presupuesto mientras se genera (Enzo, 21-10-2026): se
+/** Quitar una línea del presupuesto mientras se genera (21-10-2026): se
  *  recalcula sin ella y sigue fuera aunque se cambie de opción. Se recupera abajo. */
 const claveLineaPresu = (l) => String(l.producto_ref || '') + '|' + String(l.descripcion || '');
 
-/* ---------- el desglose de la línea FV v2, editable (Enzo, 28-10-2026) ----------
+/* ---------- el desglose de la línea FV v2, editable (28-10-2026) ----------
  * Cada partida del presupuestador (cantidad, coste unitario, nombre) se puede
  * cambiar, quitar o añadir una que no está en el modelo (otra estructura, un
  * material…). El coste de la línea vuelve a ser la suma y el PVP sale con la
@@ -8773,7 +8770,7 @@ const SISTEMAS_AIRE = [
 
 const presuNuevoVacio = () => ({
   cat: 'aire_acondicionado', clienteId: null, cliente: '', titulo: '',
-  // libre (Enzo, 6-11-2026): sin datos ni motor, se monta de cero con líneas
+  // libre (6-11-2026): sin datos ni motor, se monta de cero con líneas
   libre: false,
   // aire: una fila por equipo interior, con sus m² y sus metros de línea
   // hasta la exterior. Con los m² el motor elige la máquina; con los metros,
@@ -8788,7 +8785,7 @@ const presuNuevoVacio = () => ({
   // los paneles de ahí si no se han puesto).
   paneles: '', kwp: '', wp: 510, bateria: '',
   inversor: 'fronius', fases: 'monofasico', bateria_marca: '', backup: false,
-  // presupuestador FV v2 (Ramón, 12-10-2026): sin paneles ni kWp, el
+  // presupuestador FV v2 (12-10-2026): sin paneles ni kWp, el
   // dimensionado sale del consumo anual o de la factura mensual.
   consumo: '', factura: '', factura_rango: '', orientacion: 'vertical', km: '', cee: false, cee_h: '', horas_elev: '',
   // montaje FV (desglose oct 2026): con esto salen estructura, cables,
@@ -8797,7 +8794,7 @@ const presuNuevoVacio = () => ({
   recorrido: 'fachada', zanja: '', plantas: 1, medio: 'escalera', wifi: 'buena', cuadro_estado: 'bien',
   tierra: 'existe', excedentes: 'con_excedentes', subvencion: false, cargador: false,
   // backup automático (full backup) o manual (conmutador); y «preparado para
-  // baterías» = inversor Plus aunque hoy no lleve (Ramón, 13-10-2026).
+  // baterías» = inversor Plus aunque hoy no lleve (13-10-2026).
   backup_modo: 'automatico', bateria_futuro: false,
 });
 
@@ -8974,6 +8971,7 @@ function docsClienteHTML(c) {
     <div class="row g8" style="margin-top:10px;flex-wrap:wrap">
       <button class="pill pill-verde" data-a="cliDocNuevo" data-id="${c.id}" data-t="factura" style="padding:9px 12px" ${V.cliDocBusy === c.id ? 'disabled' : ''}>${V.cliDocBusy === c.id ? 'Subiendo…' : '+ Factura de la luz'}</button>
       <button class="pill" data-a="cliDocNuevo" data-id="${c.id}" data-t="otro" style="padding:9px 12px;background:var(--l1);color:var(--tinta)" ${V.cliDocBusy === c.id ? 'disabled' : ''}>+ Otro documento</button>
+      ${puedeCitar() ? `<button class="pill" data-a="presuExternoAbrir" data-id="${c.id}" style="padding:9px 12px;background:var(--tinta);color:#fff">+ Presupuesto en PDF</button>` : ''}
       <span class="tiny">Foto o PDF. Lo ven presupuestos, jefes y Administración.</span>
     </div>
   </div>`;
@@ -9058,14 +9056,14 @@ A.presuSueltoCliente = (id) => {
   V.suelto.cliente = V.suelto.clienteId ? c.nombre : '';
   render();
 };
-/* ---------- elegir el cliente de un presupuesto (Enzo, 28-10-2026) ----------
+/* ---------- elegir el cliente de un presupuesto (28-10-2026) ----------
  * Busca entre los clientes de la app y, con el botón CRM, en Teamleader
  * (particulares y empresas); el que se elija del CRM se trae a la app. Sirve
  * para el presupuesto nuevo (suelto) y para asignar o cambiar el cliente de un
  * presupuesto ya guardado. */
 A.presuCliAbrir = async (modo, id) => {
   // Un presupuesto guardado que ya tiene cliente no se cambia de dueño: se copia
-  // para el otro cliente como presupuesto nuevo (Enzo, 28-10-2026).
+  // para el otro cliente como presupuesto nuevo (28-10-2026).
   if (modo === 'guardado' && V.presuVer && V.presuVer.datos && V.presuVer.datos.id === id && V.presuVer.datos.cliente) modo = 'copia';
   V.sheet = { tipo: 'presuCliente', modo, id: id || null, buscar: modo === 'suelto' && V.suelto ? String(V.suelto.cliente || '') : '', crm: null, crmBusy: false, busy: false };
   render();
@@ -9079,7 +9077,7 @@ function presuCliListaHTML(s) {
     ${q.length >= 2 && !lista.length && !(s.crm || []).length ? '<div class="sub" style="padding:14px 4px">No está en la app. Pulsa CRM para buscarlo en Teamleader (también empresas).</div>' : ''}
     ${s.crm && !s.crm.length ? '<div class="sub" style="padding:6px 4px">En Teamleader tampoco aparece con ese texto.</div>' : ''}`;
 }
-/* Cambiar la categoría de un presupuesto guardado (Enzo, 30-10-2026): se toca la
+/* Cambiar la categoría de un presupuesto guardado (30-10-2026): se toca la
  * categoría en la cabecera de la ficha. Cambia la cabecera del PDF, los bloques
  * en que se agrupan las líneas y, si ya está en Teamleader, la oportunidad se
  * mueve al embudo de la categoría nueva (lo hace la función). Si el título
@@ -9088,7 +9086,7 @@ A.presuCatAbrir = () => {
   const v = V.presuVer; if (!v || !v.datos) return;
   V.sheet = { tipo: 'presuCategoria', id: v.datos.id, busy: false }; render();
 };
-/* El nombre del presupuesto se puede cambiar (Enzo, 4-11-2026). */
+/* El nombre del presupuesto se puede cambiar (4-11-2026). */
 A.presuTituloAbrir = () => {
   const v = V.presuVer; if (!v || !v.datos) return;
   const d = v.datos;
@@ -9965,7 +9963,7 @@ function camposSolarHTML(f) {
       ${f.cee ? `<div class="row g8" style="margin-top:10px;align-items:center">
         <div class="grow"><div class="lbl">Desplazamiento del certificado</div>
           <input class="inp" data-f="presuCampo" data-k="cee_h" value="${esc(String(f.cee_h ?? ''))}" inputmode="decimal" placeholder="horas" style="margin-top:8px"></div>
-        <div class="tiny grow" style="padding-top:22px">1 h de Xavi + desplazamiento + tasa de 97 €.</div>
+        <div class="tiny grow" style="padding-top:22px">1 h de técnico + desplazamiento + tasa de 97 €.</div>
       </div>` : ''}`;
 }
 
@@ -10001,7 +9999,7 @@ A.presuLineaCampo = (id, campo, valor) => {
   const d = V.presuVer && V.presuVer.datos; const l = d && (d.lineas || []).find((x) => x.id === id);
   const num = (v) => Number(String(v == null ? '' : v).replace(',', '.'));
   const pon = (k, v) => { const inp = document.querySelector(`[data-f="presuLinea"][data-id="${id}"][data-k="${k}"]`); if (inp && document.activeElement !== inp) inp.value = v; };
-  // El PVP es fijo (Enzo, 27-10-2026): escribir un margen cambia el COSTE que lo
+  // El PVP es fijo (27-10-2026): escribir un margen cambia el COSTE que lo
   // da, coste = precio × (1 − margen); escribir coste o precio enseña el margen.
   if (campo === 'margen_pct') {
     const precio = num(c.precio_tarifa != null ? c.precio_tarifa : l && l.precio_tarifa), m = num(valor);
@@ -10028,7 +10026,7 @@ A.presuLineaNueva = () => {
 };
 A.presuNuevaQuitar = (i) => { const e = V.presuEdit; if (!e) return; e.nuevas.splice(Number(i), 1); render(); };
 A.presuNuevaCampo = (i, campo, valor) => { const e = V.presuEdit; if (e && e.nuevas[Number(i)]) e.nuevas[Number(i)][campo] = valor; };
-/* El catálogo al modificar un presupuesto guardado (Enzo, 6-11-2026): se busca
+/* El catálogo al modificar un presupuesto guardado (6-11-2026): se busca
  * igual que al generar y el producto entra como línea nueva; su precio de venta
  * (con el recargo de la categoría) lo pone el servidor al guardar. */
 let presuEditBuscarT;
@@ -10096,7 +10094,7 @@ A.presuGuardarCambios = async () => {
       if (c.precio_coste != null) { const pc = String(c.precio_coste).trim() === '' ? null : num(c.precio_coste); if (pc !== (l.precio_coste == null ? null : Number(l.precio_coste))) cambios.precio_coste = pc; }
       if (c.origen_inputs) cambios.origen_inputs = c.origen_inputs;
       // Una línea «pendiente de confirmar» (el motor no tenía precio) queda
-      // confirmada en cuanto la persona le pone precio o coste (Enzo, 4-11-2026).
+      // confirmada en cuanto la persona le pone precio o coste (4-11-2026).
       const precioFinal = cambios.precio_tarifa != null ? cambios.precio_tarifa : Number(l.precio_tarifa) || 0;
       if (l.confirmada === false && precioFinal > 0 && (cambios.precio_tarifa != null || cambios.precio_coste != null)) cambios.confirmada = true;
       if (!Object.keys(cambios).length) continue;
@@ -10312,15 +10310,15 @@ function bloquesImpresion(categoria, secciones, T) {
   return salida;
 }
 
-/* ---------- condiciones generales del presupuesto (Enzo, 28-10-2026) ----------
+/* ---------- condiciones generales del presupuesto (28-10-2026) ----------
  * Las mismas páginas que lleva la plantilla de Teamleader (Presupuesto 2026/825):
  * información de pago, plazos y validez, las 14 condiciones y el bloque de
  * aceptación. Van SIEMPRE al final del PDF de la app: el que se descarga, el
  * que se adjunta al cliente y el que se firma en línea. */
-// IBAN de BENSOL para los presupuestos. Vacío = no se imprime la línea (el de Sysefen se quitó).
+// IBAN de BENSOL para los presupuestos. Vacío = no se imprime la línea .
 const PRESU_IBAN = '';
 // Los textos (pago, condiciones, aceptación) están en presu-idiomas.js, en los
-// cuatro idiomas del PDF (Enzo, 6-11-2026); en español son los de siempre.
+// cuatro idiomas del PDF (6-11-2026); en español son los de siempre.
 const PRESU_PAGO = idiomas.PDF.es.pago;
 const PRESU_CONDICIONES = idiomas.PDF.es.condiciones;
 function condicionesPresupuestoHTML(d, idioma) {
@@ -10353,7 +10351,7 @@ function condicionesPresupuestoHTML(d, idioma) {
     ${firma(T.f_fecha)}
   </div>`;
 }
-/* ---------- el presupuesto en otro idioma (Enzo, 6-11-2026) ----------
+/* ---------- el presupuesto en otro idioma (6-11-2026) ----------
  * Los textos fijos salen de presu-idiomas.js; las líneas (catálogo, en
  * español) las traduce la función «traducir» y se guardan aquí por sesión. */
 const TRAD = { en: {}, ca: {}, de: {} };
@@ -10425,7 +10423,7 @@ function imprimirPresupuestoHTML(d, idioma, tr) {
         <tr class="sub"><td colspan="4">Subtotal ${esc(s.nombre)}</td><td class="num">${eur(s.lineas.reduce((t, l) => t + Number(l.precio_venta || 0), 0))}</td></tr>
       </table>`).join('')}
     ${(() => {
-      // Presupuestador FV v2: la nota y las condiciones del presupuesto de Ramón, en el PDF.
+      // Presupuestador FV v2: la nota y las condiciones del presupuesto de presupuestos, en el PDF.
       const fv2 = lineas.find((l) => l.origen_inputs && l.origen_inputs.fv2 && l.origen_inputs.nota);
       return fv2 ? `<div class="nota" style="margin-top:3mm"><div>${esc(fv2.origen_inputs.nota)}</div><div style="margin-top:1mm">${esc(fv2.origen_inputs.condiciones || '')}</div></div>` : '';
     })()}
@@ -10447,7 +10445,7 @@ function imprimirPresupuestoHTML(d, idioma, tr) {
  * desde el CRM, que es donde se ve cómo queda.
  */
 /** El nombre del PDF de un presupuesto: presupuesto-aerotermia-ana-ferrer.pdf */
-// El archivo se llama como el presupuesto (Enzo, 28-10-2026): «Presupuesto Juanlu · Enphase · 5,1 kWp.pdf».
+// El archivo se llama como el presupuesto (28-10-2026): «Presupuesto Juanlu · Enphase · 5,1 kWp.pdf».
 const PDF_PREFIJO = { es: 'Presupuesto', en: 'Quotation', ca: 'Pressupost', de: 'Angebot' };
 const nombrePdfPresu = (d, idioma) => {
   idioma = idiomas.idiomaValido(idioma);
@@ -10616,7 +10614,7 @@ function vPresupuestoVer() {
 // El seguimiento del presupuesto, en su ficha: los pasos de crearlo a la
 // respuesta del cliente, y los botones para marcar cada uno (sql/etapa64).
 const CAT_A_OBRA = { aerotermia: 'AE', solar: 'FV', aire_acondicionado: 'AC', electricidad: 'EL' };
-/* ---------- enviar el presupuesto al cliente por correo (Enzo, 27-10-2026) ---------- */
+/* ---------- enviar el presupuesto al cliente por correo (27-10-2026) ---------- */
 A.presuEnviarAbrir = async () => {
   const d = V.presuVer && V.presuVer.datos; if (!d) return;
   if (!navigator.onLine) { avisar('Sin conexión.'); return; }
@@ -10639,7 +10637,7 @@ A.presuEnviarRevisar = async () => {
   const s = V.sheet; if (!s || s.tipo !== 'presuEnviar' || s.busy) return;
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s.v.para || '').trim())) { avisar('Pon un correo válido del cliente.'); return; }
   // En otro idioma, el asunto y el mensaje se traducen antes de confirmar,
-  // para verlos tal como le llegarán al cliente (Enzo, 6-11-2026).
+  // para verlos tal como le llegarán al cliente (6-11-2026).
   s.trad = null;
   if (s.v.idioma !== 'es') {
     const textos = [String(s.v.asunto || '').trim(), String(s.v.mensaje || '').trim()].filter(Boolean);
@@ -10667,6 +10665,14 @@ A.presuEnviarConfirmado = async () => {
     const pdfs = [], titulos = {};
     for (const id of s.ids) {
       const d = await visitasDB.verPresupuesto(id);
+      if (d.pdf_subido_ruta) {
+        // Presupuesto subido en PDF: se manda tal cual, sin rehacerlo ni traducirlo.
+        const url = await visitasDB.urlArchivoPresupuesto(d.pdf_subido_ruta, 600);
+        const bl = await (await fetch(url)).blob();
+        const base64 = await new Promise((ok, mal) => { const fr = new FileReader(); fr.onload = () => ok(String(fr.result).replace(/^data:[^,]*,/, '')); fr.onerror = () => mal(fr.error); fr.readAsDataURL(bl); });
+        pdfs.push({ id, base64, nombre: nombrePdfPresu(d, idioma) });
+        continue;
+      }
       const tr = await traduccionesPresu(d, idioma);
       if (idioma !== 'es' && d.titulo) titulos[id] = tr(d.titulo);
       imprimirPresupuestoHTML(d, idioma, tr);
@@ -10695,7 +10701,7 @@ function vencePresu(d) {
   const t = new Date(d.enviado_cliente_at); t.setDate(t.getDate() + (Number(d.validez_dias) || 15) + (Number(d.prorroga_dias) || 0));
   return fechaLocal(t.toISOString());
 }
-/* Aviso de vencimiento al cliente, a mano (Enzo, 6-11-2026): antes salía solo. */
+/* Aviso de vencimiento al cliente, a mano (6-11-2026): antes salía solo. */
 A.presuAvisoVencAbrir = () => {
   const d = V.presuVer && V.presuVer.datos; if (!d || !d.enviado_cliente_at) return;
   V.sheet = { tipo: 'presuAvisoVenc', id: d.id, nombre: (d.cliente && d.cliente.nombre) || '', vence: vencePresu(d), otraVez: !!d.aviso_vencimiento_at, busy: false }; render();
@@ -10744,6 +10750,7 @@ function seguimientoHTML(d) {
   const busy = V.presuSegBusy;
   return `<div class="card" style="margin-top:12px;padding:12px 15px">
     <div class="row g8" style="align-items:center"><span class="dot" style="width:10px;height:10px;background:${sg.color}"></span><span style="font:600 15px var(--sans)">${esc(sg.txt)}</span></div>
+    ${d.pdf_subido_ruta ? `<button class="pill" data-a="presuPdfSubidoVer" style="margin-top:10px;padding:9px 12px;background:var(--l1);color:var(--tinta)">Ver el PDF del presupuesto</button>` : ''}
     <div class="row g8" style="align-items:center;margin-top:10px"><span class="lbl" style="font-size:11px;flex:none">Nº Teamleader</span><input class="inp" data-f="presuTlNumero" value="${esc(d.tl_numero || '')}" placeholder="2026/634" style="width:120px;padding:7px 9px"><span class="tiny">La API no lo da: se apunta a mano y sale en la lista.</span></div>
     <div style="margin-top:10px">${pasos.map(([t, sub, ok]) => `<div class="row g10" style="align-items:center;padding:7px 0;border-bottom:1px solid var(--l1)">
       <span class="dot" style="width:9px;height:9px;background:${ok ? 'var(--verde)' : 'rgba(20,23,15,.15)'}"></span>
@@ -10792,7 +10799,7 @@ A.presuRespuesta = async (r) => {
   V.presuSegBusy = true; render();
   try { Object.assign(d, await visitasDB.seguimientoPresupuesto(d.id, { respuesta_cliente: r, respondido_at: r === 'pendiente' ? null : new Date().toISOString() })); if (V.agenda.cargado) A.cargarAgenda();
     if (r === 'aceptado' && d.tl_quotation_id) visitasDB.aceptarEnTeamleader(d.id).then(() => toast('La oferta queda aceptada también en Teamleader.')).catch((e) => avisar('Aceptado en la app, pero no en Teamleader: ' + msgError(e)));
-    // Aceptado → la obra se crea sola (Enzo, 27-10-2026) y el cliente sale de Otros/Rechazados si estaba colocado a mano.
+    // Aceptado → la obra se crea sola (27-10-2026) y el cliente sale de Otros/Rechazados si estaba colocado a mano.
     if (r === 'aceptado' && !d.obra_id) { try { await crearObraDePresupuesto(d); } catch (e) { avisar('Aceptado, pero no se pudo crear la obra: ' + msgError(e)); } }
     if (r === 'aceptado' && d.cliente_id) { const c = agCliente(d.cliente_id); if (c && c.tablero_col && c.tablero_col !== 'finalizado') { try { await visitasDB.guardarCliente({ id: c.id, tablero_col: null, tablero_motivo: null }); c.tablero_col = null; c.tablero_motivo = null; } catch (_) { /* da igual */ } } } if (r !== 'pendiente') anotar(d.cliente && d.cliente.id, 'presupuesto', 'El cliente ' + ({ aceptado: 'aceptó', rechazado: 'rechazó', caducado: 'dejó caducar' })[r] + ' el presupuesto de ' + nombreCat(d.categoria)); }
   catch (e) { avisar('No se pudo guardar: ' + msgError(e)); }
@@ -10814,11 +10821,11 @@ function obraAbiertaDelCliente(clienteId, tlId, salvoId) {
 async function crearObraDePresupuesto(d) {
   const cli = d.cliente || (d.cliente_id ? { id: d.cliente_id } : {});
   const cliFull = cli.id ? (agCliente(cli.id) || cli) : cli;
-  // Un cliente, una obra (Enzo, 27-10-2026): si ya tiene una abierta, el
+  // Un cliente, una obra (27-10-2026): si ya tiene una abierta, el
   // presupuesto se enlaza a ella y el proyecto crece con su categoría.
   // La obra abierta se busca por el cliente de la app y también por su contacto de
   // Teamleader (1-11-2026): las obras antiguas tienen tl_id pero no cliente_id, y
-  // al aceptar un segundo presupuesto se creaba otra obra (Heim: OB-020 y OB-026).
+  // al aceptar un segundo presupuesto se creaba otra obra (pasaba con un cliente).
   const abierta = obraAbiertaDelCliente(cli.id, cliFull.tl_id);
   if (abierta) {
     const cat = CAT_A_OBRA[d.categoria] || null;
@@ -10879,7 +10886,7 @@ A.confirmarBorrarPresu = async () => {
  * ============================================================================= */
 Object.assign(V, {
   agenda: { citas: [], clientes: [], cargado: false, cargando: false, error: null, filtro: 'todas', filtroCli: 'todos', buscar: '',
-    // Clientes en tablero por defecto (Enzo, 16-10-2026); el cambio a lista se recuerda en este dispositivo.
+    // Clientes en tablero por defecto (16-10-2026); el cambio a lista se recuerda en este dispositivo.
     vista: (() => { try { return localStorage.getItem('ag_vista') === 'lista' ? 'lista' : 'tablero'; } catch (_) { return 'tablero'; } })(),
     // Orden de cada columna del tablero (20-10-2026): null = a mano; 'fecha_desc' = los que entraron más tarde arriba; 'fecha_asc' = los más antiguos arriba.
     tbOrden: (() => { try { const o = JSON.parse(localStorage.getItem('tb_orden') || '{}'); return o && typeof o === 'object' ? o : {}; } catch (_) { return {}; } })() },
@@ -10913,7 +10920,7 @@ const agNombreEmp = (empId) => { const u = S.users.find((x) => x.empId === empId
 const agTipoNombre = (c) => (AG_TIPOS.find((x) => x[0] === c.tipo) || [null, c.tl_tipo === 'company' ? 'Empresa' : 'Particular'])[1];
 const agBadge = (txt) => `<span class="badge" style="background:rgba(20,23,15,.06);color:var(--tinta)">${esc(txt)}</span>`;
 
-// «Contactado · 1 oct · Ramón» / «No cogió el teléfono · 1 oct · Ramón · 2 intentos», o vacío si nadie lo ha llamado.
+// «Contactado · 1 oct · presupuestos» / «No cogió el teléfono · 1 oct · presupuestos · 2 intentos», o vacío si nadie lo ha llamado.
 const agContactadoTxt = (c) => {
   if (!c.contacto_estado) return '';
   const partes = [c.contacto_estado === 'contactado' ? 'Contactado' : 'No cogió el teléfono'];
@@ -11032,32 +11039,56 @@ A.tbMoverAbrir = (id) => { const c = agCliente(id); if (!c || !puedeCitar()) ret
  * líneas, y a partir de ahí se sigue igual: revisado, enviado, aceptado. */
 A.presuExternoAbrir = (id) => {
   const c = agCliente(id); if (!c || !puedeCitar()) return;
-  V.sheet = { tipo: 'presuExterno', id, cat: 'solar', importe: '', tl: '', revisado: true, busy: false }; render();
+  V.sheet = { tipo: 'presuExterno', id, cat: 'obra', titulo: '', importe: '', tl: '', revisado: true, busy: false, pdf: null }; render();
+};
+/** Elegir el PDF del presupuesto (hecho fuera de la app). */
+A.presuExternoPdf = () => {
+  const s = V.sheet; if (!s || s.tipo !== 'presuExterno') return;
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/pdf,.pdf';
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    if (!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)) { avisar('Tiene que ser un PDF.'); return; }
+    if (f.size > 10 * 1048576) { avisar('Ese PDF pesa más de 10 MB.'); return; }
+    const data = await leerDataURL(f);
+    s.pdf = { data, nombre: f.name, kb: Math.round(f.size / 1024) };
+    if (!s.titulo) s.titulo = String(f.name).replace(/\.pdf$/i, '').slice(0, 120);
+    render();
+  };
+  inp.click();
 };
 A.presuExternoCat = (k) => { if (V.sheet && V.sheet.tipo === 'presuExterno') { V.sheet.cat = k; render(); } };
 A.presuExternoRevisado = () => { if (V.sheet && V.sheet.tipo === 'presuExterno') { V.sheet.revisado = !V.sheet.revisado; render(); } };
 A.presuExternoGuardar = async () => {
   const s = V.sheet; if (!s || s.tipo !== 'presuExterno' || s.busy) return;
+  if (!s.pdf) { avisar('Falta el PDF del presupuesto.'); return; }
+  if (!navigator.onLine) { avisar('Sin conexión: no se puede subir.'); return; }
   const importe = Number(String(s.importe || '').replace(/\./g, '').replace(',', '.')) || null;
-  const tl = String(s.tl || '').trim() || null;
+  const num = String(s.tl || '').trim() || null;
+  const titulo = String(s.titulo || '').trim() || nombreCat(s.cat);
   s.busy = true; render();
   try {
     const ahora = new Date().toISOString();
     const fila = {
-      cliente_id: s.id, categoria: s.cat,
-      titulo: tl ? 'Oferta ' + tl : nombreCat(s.cat),
+      cliente_id: s.id, categoria: s.cat, titulo,
       total_bruto: importe, total_venta: importe, total_dto_linea: 0, dto_global_pct: 0,
-      tl_quotation_id: tl, sync_estado: tl ? 'sincronizado' : 'pendiente', sync_at: tl ? ahora : null,
-      motor_version: 'teamleader',
+      tl_numero: num, sync_estado: 'pendiente', motor_version: 'pdf',
       estado: s.revisado ? 'aprobado' : 'generado',
       revisado_at: s.revisado ? ahora : null, revisado_por: s.revisado ? (miEmpId() || null) : null,
     };
     const r = await visitasDB.crearPresupuestoExterno(fila);
+    try { r.pdf_subido_ruta = await visitasDB.subirPdfPresupuesto(r.id, s.pdf.data); }
+    catch (e) { avisar('El presupuesto queda apuntado, pero el PDF no se subió: ' + msgError(e)); }
     const c = agCliente(s.id); if (c) { c.presupuestos = (c.presupuestos || []).concat([r]); }
-    V.sheet = null; toast('Presupuesto apuntado: el cliente pasa a presupuestado.'); render();
-    anotar(s.id, 'presupuesto', 'Presupuesto de ' + nombreCat(s.cat) + ' hecho en Teamleader' + (importe ? ' · ' + eur(importe) : '') + (tl ? ' · oferta ' + tl : ''));
+    V.sheet = null; toast('Presupuesto subido: el cliente pasa a presupuestado.'); render();
+    anotar(s.id, 'presupuesto', 'Presupuesto en PDF subido: ' + titulo + (importe ? ' · ' + eur(importe) : '') + (num ? ' · nº ' + num : ''));
     V.presuLista.cargado = false; A.cargarAgenda();
-  } catch (e) { s.busy = false; avisar('No se pudo apuntar: ' + msgError(e)); render(); }
+  } catch (e) { s.busy = false; avisar('No se pudo guardar: ' + msgError(e)); render(); }
+};
+/** Ver el PDF subido de un presupuesto. */
+A.presuPdfSubidoVer = async () => {
+  const d = V.presuVer && V.presuVer.datos; if (!d || !d.pdf_subido_ruta) return;
+  try { window.open(await visitasDB.urlArchivoPresupuesto(d.pdf_subido_ruta), '_blank', 'noopener'); }
+  catch (e) { avisar('No se pudo abrir el PDF: ' + msgError(e)); }
 };
 A.tbMover = async (id, k) => {
   const c = agCliente(id); if (!c || !puedeCitar()) return;
@@ -11192,7 +11223,7 @@ function seguimientoClienteHTML(c) {
   </div>`;
 }
 // El tablero por fases, como el de Teamleader pero con lo que la app ya sabe.
-// Orden pedido por Enzo (16-10-2026): los resueltos sin cita van entre visitados y
+// Orden pedido (16-10-2026): los resueltos sin cita van entre visitados y
 // presupuesto por revisar; rechazados tiene columna propia siempre a la vista.
 const TABLERO_COLS = [
   ['sin_cita', 'Nuevos · sin cita', 'var(--rojo)'], ['no_responde', 'No responden', '#7a2e1f'], ['citado', 'Citados', 'var(--ambar)'], ['visitado', 'Visitados · por presupuestar', 'var(--tinta)'],
@@ -11281,7 +11312,7 @@ function presuQueManda(c) {
   return lista.slice().sort((a, b) => seguimientoPresu(b).paso - seguimientoPresu(a).paso || String(b.created_at).localeCompare(String(a.created_at)))[0];
 }
 // Importe del cliente en el tablero: la suma de TODOS sus presupuestos aceptados
-// (Heim tenía dos y solo salía uno; Enzo, 2-11-2026). Sin aceptados, el que manda.
+// (un cliente tenía dos y solo salía uno; 2-11-2026). Sin aceptados, el que manda.
 function importeCliente(c) {
   const ac = presupuestosDeCliente(c).filter((p) => p.respuesta_cliente === 'aceptado' && p.total_venta != null);
   if (ac.length) return { total: ac.reduce((s, p) => s + (Number(p.total_venta) || 0), 0), n: ac.length };
@@ -11369,7 +11400,7 @@ function agEstadoCliente(c) {
   if (obrasC.length && obrasC.every((o) => o.estado === 'finalizada' || o.estado === 'cerrada')) {
     return { k: 'finalizado', color: 'var(--verde-o)', txt: 'Finalizado · ' + obrasC.map((o) => codigoObra(o) || o.titulo).filter(Boolean).join(', ') };
   }
-  // Aplazado manda sobre todo, también sobre un presupuesto aceptado (Enzo,
+  // Aplazado manda sobre todo, también sobre un presupuesto aceptado (
   // 16-10-2026: una obra aceptada que se pospone). Al vencer vuelve a su sitio.
   if (c.aplazado_hasta && c.aplazado_hasta >= hoyISO()) return { k: 'aplazado', color: 'var(--ambar-o)', txt: 'Aplazado hasta ' + fechaCorta(c.aplazado_hasta + 'T12:00') + (c.aplazado_motivo ? ' · ' + c.aplazado_motivo : '') + (sgm && sgm.k === 'aceptado' ? ' · presupuesto aceptado' : '') };
   if (sgm && sgm.k === 'aceptado') return { k: 'aceptado', color: sgm.color, txt: 'Presupuesto · aceptado' };
@@ -11659,7 +11690,7 @@ Object.assign(V, { crm: { cargado: false, busy: false, conectado: false, expira:
 /* --- Lista de compra de la obra (sql/etapa96, función lista-compra, V30.8) ---------------
    Al aceptarse un presupuesto, la base avisa a la función, que junta todos los presupuestos
    aceptados de la obra, genera el PDF (material por proveedor, pendiente, no se compra) y lo
-   manda a Ramón y Fabrizio. Desde aquí solo se ABRE (o se regenera): el correo no sale nunca
+   manda a presupuestos. Desde aquí solo se ABRE (o se regenera): el correo no sale nunca
    desde la app. En un presupuesto no aceptado, el botón enseña una simulación con él dentro. */
 Object.assign(V, { listaCompra: { busy: null, correos: null, correosTxt: null, correosBusy: false, error: null } });
 const puedeListaCompra = () => ['presupuestos', 'jefe', 'admin'].includes(rol());
@@ -11687,7 +11718,7 @@ function vListaCompraAjustes() {
   return `<div class="lbl" style="font-weight:600;font-size:12px;color:var(--t2);margin:22px 0 10px">Lista de compra · destinatarios</div>
     <div class="card">
       <div class="sub" style="font-size:12px">A quién llega el correo con la lista de compra cada vez que un cliente acepta un presupuesto. Correos separados por comas. Al cliente y a los operarios no les llega nunca.</div>
-      <input class="inp" data-f="listaCompraCorreosTxt" value="${esc(lc.correosTxt != null ? lc.correosTxt : (lc.correos || []).join(', '))}" placeholder="${lc.correosBusy && lc.correos === null ? 'Cargando…' : 'ramon@…, fabrizio@…'}" style="margin-top:10px" ${lc.correosBusy ? 'disabled' : ''}>
+      <input class="inp" data-f="listaCompraCorreosTxt" value="${esc(lc.correosTxt != null ? lc.correosTxt : (lc.correos || []).join(', '))}" placeholder="${lc.correosBusy && lc.correos === null ? 'Cargando…' : 'compras@bensolic.es, …'}" style="margin-top:10px" ${lc.correosBusy ? 'disabled' : ''}>
       ${lc.error && lc.errorDe === 'correos' ? `<div class="sub" style="font-size:12px;margin-top:8px;color:var(--rojo)">${esc(lc.error)}</div>` : ''}
       <button class="pill" data-a="listaCompraCorreosGuardar" style="margin-top:10px;padding:11px 16px;background:var(--tinta);color:#fff" ${lc.correosBusy ? 'disabled' : ''}>Guardar</button>
     </div>`;
@@ -12094,7 +12125,7 @@ function agSolapeHTML(d) {
 }
 
 // Las citas que ya hay el día elegido, a la vista antes de escoger la hora:
-// «10:00–11:00 · Juan Romero · Ramón». Para no poner dos a la misma hora.
+// «10:00–11:00 · Juan Romero · presupuestos». Para no poner dos a la misma hora.
 function agCitasDelDiaHTML(d) {
   if (!d || !d.dia) return '';
   const delDia = V.agenda.citas
@@ -12202,7 +12233,7 @@ function vAgenda() {
       <span class="dot" style="background:${color}"></span>
       <div class="grow" style="min-width:0"><b>${titulo}</b>${sub ? `<small>${sub}</small>` : ''}</div>
       <span class="pill">${accion}</span></div>`);
-  // Las visitas sin cerrar ya no salen aquí (Enzo, 20-10-2026): se ven en la
+  // Las visitas sin cerrar ya no salen aquí (20-10-2026): se ven en la
   // ficha del cliente, cuando toque presupuestar, y en Visitas → Sin cerrar.
   if (puedeCitar()) {
     ag.clientes.forEach((c) => (c.visitas || []).forEach((v) => {
@@ -13546,18 +13577,22 @@ function sheet() {
   if (s.tipo === 'presuExterno') {
     const c = agCliente(s.id) || {};
     return `<div class="sheet"><div>
-      <div style="font:600 23px/1.15 var(--cond)">Presupuesto hecho en Teamleader</div>
-      <div class="sub" style="margin-top:6px">${esc(c.nombre || '')}. Se apunta aquí para que pase a «presupuestado» y se pueda seguir (revisado, enviado, respuesta). No calcula nada.</div>
-      <div class="lbl" style="margin:14px 0 8px">De qué</div>
-      <div class="wrap">${vSchemas.CATEGORIAS.map((k) => `<span class="chip ${s.cat === k.key ? 'on' : ''}" data-a="presuExternoCat" data-k="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div>
+      <div style="font:600 23px/1.15 var(--cond)">Subir presupuesto en PDF</div>
+      <div class="sub" style="margin-top:6px">${esc(c.nombre || '')}. El PDF que has hecho fuera de la app (Excel, Presto…). Queda en el cliente y desde aquí se le envía con el enlace para aceptarlo y firmarlo.</div>
+      <button class="btn ${s.pdf ? 'btn-gris' : 'btn-verde'}" data-a="presuExternoPdf" style="margin-top:14px">${s.pdf ? 'Cambiar PDF' : 'Elegir el PDF'}</button>
+      ${s.pdf ? `<div class="tiny" style="margin-top:6px">✓ ${esc(s.pdf.nombre)} · ${s.pdf.kb} KB</div>` : ''}
+      <div class="lbl" style="margin:14px 0 6px">Título (lo ve el cliente)</div>
+      <input class="inp" data-f="presuExtTitulo" value="${esc(s.titulo)}" placeholder="Reforma de baño · C/ …">
+      <div class="lbl" style="margin:14px 0 8px">Tipo</div>
+      <div class="wrap">${CATS_PDF.concat(vSchemas.CATEGORIAS).map((k) => `<span class="chip ${s.cat === k.key ? 'on' : ''}" data-a="presuExternoCat" data-k="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div>
       <div class="row g8" style="margin-top:12px">
-        <div class="grow"><div class="lbl">Importe sin IVA</div><input class="inp" data-f="presuExtImporte" value="${esc(s.importe)}" inputmode="decimal" placeholder="opcional" style="margin-top:6px"></div>
-        <div class="grow"><div class="lbl">Nº de oferta en Teamleader</div><input class="inp" data-f="presuExtTl" value="${esc(s.tl)}" placeholder="opcional" style="margin-top:6px"></div>
+        <div class="grow"><div class="lbl">Importe sin IVA</div><input class="inp" data-f="presuExtImporte" value="${esc(s.importe)}" inputmode="decimal" placeholder="sale en el correo" style="margin-top:6px"></div>
+        <div class="grow"><div class="lbl">Nº de presupuesto</div><input class="inp" data-f="presuExtTl" value="${esc(s.tl)}" placeholder="opcional" style="margin-top:6px"></div>
       </div>
       <div class="wrap" style="margin-top:12px"><span class="chip ${s.revisado ? 'on' : ''}" data-a="presuExternoRevisado" style="cursor:pointer">${s.revisado ? 'Ya está revisado' : 'Pendiente de revisar'}</span></div>
       <div class="row g8" style="margin-top:18px">
         <button class="btn btn-gris" data-a="cerrarSheet" style="border-radius:99px">Cancelar</button>
-        <button class="btn btn-verde" data-a="presuExternoGuardar" ${s.busy ? 'disabled' : ''}>${s.busy ? 'Guardando…' : 'Apuntar'}</button>
+        <button class="btn btn-verde" data-a="presuExternoGuardar" ${s.busy || !s.pdf ? 'disabled' : ''}>${s.busy ? 'Subiendo…' : 'Guardar'}</button>
       </div>
     </div></div>`;
   }
@@ -14039,7 +14074,7 @@ function imprimirParteHTML(p) {
  * botón de volver de esa pantalla («‹ Obras», «‹ Agenda», «Atrás»…), que
  * sigue estando para quien prefiera tocarlo. Con una hoja abierta, la cierra.
  * ------------------------------------------------------------------------- */
-// El PIN con el teclado del ordenador (Enzo, 21-10-2026): cifras, Retroceso y Escape.
+// El PIN con el teclado del ordenador (21-10-2026): cifras, Retroceso y Escape.
 document.addEventListener('keydown', (e) => {
   if (V.view !== 'pin' || !V.pinUser || e.metaKey || e.ctrlKey || e.altKey) return;
   const t = e.target; if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
@@ -14138,6 +14173,8 @@ document.addEventListener('click', (e) => {
   if (a === 'fotoVisorIr') return A.fotoVisorIr(Number(d.d) || 0);
   if (a === 'fotoVisorCambiar') return A.fotoVisorCambiar();
   if (a === 'presuExternoAbrir') { e.stopPropagation(); return A.presuExternoAbrir(d.id); }
+  if (a === 'presuExternoPdf') return A.presuExternoPdf();
+  if (a === 'presuPdfSubidoVer') return A.presuPdfSubidoVer();
   if (a === 'editarVisita') return A.editarVisita(d.id);
   if (a === 'enviarVisita') return A.enviarVisita();
   if (a === 'visitaPdf') return A.visitaPdf();
@@ -14483,7 +14520,7 @@ document.addEventListener('dragstart', (e) => {
   try { e.dataTransfer.setData('text/plain', tbArrastre); e.dataTransfer.effectAllowed = 'move'; } catch (_) { /* da igual */ }
 });
 document.addEventListener('dragend', () => { tbArrastre = null; tbAutoScrollParar(); document.querySelectorAll('.tb-card.arrastrando, .tb-col.sobre, .tb-card.antes').forEach((x) => x.classList.remove('arrastrando', 'sobre', 'antes')); });
-// Al llevar una tarjeta hasta el borde del tablero, se desplaza solo (Enzo,
+// Al llevar una tarjeta hasta el borde del tablero, se desplaza solo (
 // 20-10-2026): a los lados, las columnas; arriba y abajo, la página. Cuanto
 // más cerca del borde, más rápido.
 let tbAutoScroll = null;
@@ -14595,6 +14632,7 @@ document.addEventListener('input', (e) => {
   if (f === 'presuOpcionPaneles') { clearTimeout(presuKwhT); presuKwhT = setTimeout(() => A.presuOpcionPaneles(t.value), 900); return; }
   if (f === 'presuOpcionGrua') { clearTimeout(presuKwhT); presuKwhT = setTimeout(() => A.presuOpcionGrua(t.value), 900); return; }
   if (f === 'presuExtTl') { if (V.sheet) V.sheet.tl = t.value; return; }
+  if (f === 'presuExtTitulo') { if (V.sheet) V.sheet.titulo = t.value; return; }
   if (f === 'categoriaOtra') { if (V.draft) V.draft.categoriaOtra = t.value; return; }
   if (f === 'faseNota') { if (V.sheet) V.sheet.nota = t.value; return; }
   if (f === 'faseNombre') { if (V.sheet) V.sheet.nombre = t.value; return; }

@@ -1,4 +1,4 @@
-// BENSOL · presu-idiomas.js · Los textos fijos del presupuesto en cuatro idiomas (Enzo, 6-11-2026)
+// BENSOL · presu-idiomas.js · Los textos fijos del presupuesto en cuatro idiomas (6-11-2026)
 //
 // El PDF del presupuesto y el correo al cliente salen en español, inglés,
 // catalán o alemán, a elegir al descargar o enviar. Aquí van los textos que

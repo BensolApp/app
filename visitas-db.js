@@ -588,7 +588,7 @@ export async function presupuestosDeVisita(visitaId) {
  * ------------------------------------------------------------------------- */
 
 /**
- * Copia de un presupuesto para OTRO cliente (Enzo, 28-10-2026): nace como un
+ * Copia de un presupuesto para OTRO cliente (28-10-2026): nace como un
  * presupuesto nuevo (sin visita, sin oferta en Teamleader, sin revisar ni
  * enviar), con las mismas líneas e incidencias. El original no se toca.
  */
@@ -638,6 +638,14 @@ export async function traducir(idioma, textos) {
 export async function enviarPresupuestoCliente(datos) {
   return invocar('presupuesto-cliente', Object.assign({ accion: 'enviar' }, datos));
 }
+/** Sube el PDF de un presupuesto hecho fuera de la app y lo apunta en el presupuesto. Devuelve la ruta. */
+export async function subirPdfPresupuesto(presupuestoId, dataURL) {
+  const ruta = `${presupuestoId}/subido-${Date.now()}.pdf`;
+  const { error } = await supabase.storage.from('presupuestos-cliente').upload(ruta, blobDeDataURL(dataURL), { contentType: 'application/pdf', upsert: false });
+  if (error) throw new Error(error.message);
+  unwrap(await supabase.from('presupuestos').update({ pdf_subido_ruta: ruta }).eq('id', presupuestoId));
+  return ruta;
+}
 export async function urlArchivoPresupuesto(ruta, segundos = 3600) {
   const { data, error } = await supabase.storage.from('presupuestos-cliente').createSignedUrl(ruta, segundos);
   if (error) throw new Error(error.message);
@@ -681,7 +689,7 @@ export async function buscarProductos(texto, familia) {
   // Cada palabra tiene que estar en el nombre, en cualquier orden («arotherm 8»
   // encuentra «aroTHERM plus 8 básico…»). Antes se buscaba la frase entera y,
   // además, el texto en la referencia: «8» casaba con casi todos los códigos y
-  // los 25 primeros por nombre tapaban lo que se buscaba (Enzo, 26-10-2026).
+  // los 25 primeros por nombre tapaban lo que se buscaba (26-10-2026).
   const COLS = 'referencia, nombre, familia, unidad, precio_tarifa, detalle_tecnico, especificaciones, iva';
   const palabras = q.split(/\s+/).filter(Boolean);
   let porNombre = supabase.from('productos').select(COLS).eq('activo', true);

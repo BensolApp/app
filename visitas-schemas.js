@@ -231,7 +231,7 @@ const SOLAR = {
           unidad: 'kW', obligatorio: true, motor: true },
         { key: 'consumo_anual_kwh', etiqueta: 'Consumo anual', tipo: 'numero', unidad: 'kWh',
           obligatorio: true, motor: true, ayuda: 'Suma de los 12 meses' },
-        // Presupuestador FV v2 (Ramón, 12-10-2026): si no hay consumo, el
+        // Presupuestador FV v2 (12-10-2026): si no hay consumo, el
         // dimensionado sale de la factura mensual (la exacta, o su tramo).
         { key: 'factura_mensual_eur', etiqueta: 'Factura mensual', tipo: 'numero', unidad: '€/mes', motor: true,
           ayuda: 'Si no se sabe el consumo anual. Manda sobre el tramo' },
@@ -352,7 +352,7 @@ const SOLAR = {
           ayuda: 'Fronius: BYD, Fronius o Tesla · Enphase: Enphase o Tesla' },
         { key: 'backup', etiqueta: 'Con backup', tipo: 'bool', motor: true,
           ayuda: 'Solo si lleva batería: la casa sigue con luz si se va la red' },
-        // Ramón (13-10-2026): si quiere backup, automático o manual. Automático
+        // presupuestos (13-10-2026): si quiere backup, automático o manual. Automático
         // = full backup, la casa conmuta sola (Backup Switch / Gateway) y es de
         // toda la vivienda. Manual = conmutador manual (PV Point) con cuadro de
         // cargas críticas.
@@ -373,9 +373,9 @@ const SOLAR = {
         { key: 'vivienda_legal', etiqueta: 'Vivienda legalizada / con cédula', tipo: 'bool',
           ayuda: 'Sin eso no se puede legalizar' },
         { key: 'subvencion', etiqueta: 'Pide subvención', tipo: 'bool', motor: true,
-          ayuda: 'Tramitación (1 h de Xavi)' },
+          ayuda: 'Tramitación (1 h de el técnico)' },
         { key: 'certificado_energetico', etiqueta: 'Certificado energético', tipo: 'bool', motor: true,
-          ayuda: '1 h de Xavi + desplazamiento + tasa de 97 €' },
+          ayuda: '1 h de técnico + desplazamiento + tasa de 97 €' },
         { key: 'cee_desplaz_h', etiqueta: 'Desplazamiento del certificado', tipo: 'numero', unidad: 'h', motor: true },
         { key: 'bonificacion_ibi', etiqueta: 'Pide bonificación IBI / ICIO', tipo: 'bool', motor: true },
       ],
@@ -658,7 +658,7 @@ export const etiqueta = (v) => ETIQUETAS[v] || String(v ?? '').replace(/_/g, ' '
 
 /* ---------------------------------------------------------------------------
  * Ayudas de cálculo. NO son el Motor BENSOL: son propuestas de campo para que
- * Ramón no salga de la casa con el hueco en blanco. Siempre editables, y al
+ * presupuestos no salga de la casa con el hueco en blanco. Siempre editables, y al
  * editarlas se marca el campo como tocado a mano.
  * ------------------------------------------------------------------------- */
 export function proponer(categoria, datos, comun) {

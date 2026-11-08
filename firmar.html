@@ -5,23 +5,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Presupuesto · BENSOL</title>
-<link rel="icon" href="icono-192.png">
+<link rel="icon" href="icon-192.png">
 <style>
-body{margin:0;background:#f5f4ef;font-family:Arial,Helvetica,sans-serif;color:#14170f}
+body{margin:0;background:#f2f2f2;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a}
 .w{max-width:720px;margin:0 auto;padding:22px 14px 60px}
-.c{background:#fff;border-radius:18px;padding:22px 20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(20,23,15,.06)}
-h1{font-size:24px;margin:0 0 6px}h2{font-size:15px;margin:18px 0 8px;color:#555;text-transform:uppercase;letter-spacing:.06em}
+.c{background:#fff;border:1px solid #d9d9d9;border-radius:2px;padding:22px 20px;margin-bottom:16px}
+.c.cab{border-top:4px solid #fabf10}
+h1{font-family:'Arial Narrow',Arial,sans-serif;font-size:24px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.5px}h2{font-family:'Arial Narrow',Arial,sans-serif;font-size:15px;margin:18px 0 8px;color:#1a1a1a;text-transform:uppercase;letter-spacing:.06em;border-bottom:1.5px solid #1a1a1a;padding-bottom:4px}
 .sub{color:#666;font-size:14px}.l{padding:10px 0;border-bottom:1px solid #eee;overflow:hidden}.l .n{font-weight:600;font-size:15px}.l .d{color:#555;font-size:13px;margin-top:3px;white-space:pre-wrap}
 .l .q{color:#777;font-size:12px;margin-top:4px}.l .p{float:right;font-weight:600;font-size:15px;margin-left:12px}
-.t{display:flex;justify-content:space-between;padding:6px 0;font-size:15px}.t.big{font-size:21px;font-weight:700;border-top:2px solid #14170f;padding-top:12px;margin-top:8px}
+.t{display:flex;justify-content:space-between;padding:6px 0;font-size:15px}.t.big{font-size:21px;font-weight:700;border-top:2px solid #1a1a1a;padding-top:12px;margin-top:8px;background:#fabf10;padding:10px 8px}
 .inp{width:100%;box-sizing:border-box;padding:13px 14px;border:1.5px solid #d9d8d2;border-radius:12px;font-size:16px;margin-top:8px;font-family:inherit}
 .firma{position:relative;margin-top:10px;border:1.5px dashed #b9b8b1;border-radius:14px;background:#fafaf7;height:190px}
 .firma canvas{width:100%;height:100%;display:block;touch-action:none}
 .firma .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#999;pointer-events:none;font-size:14px}
-.btn{display:block;width:100%;padding:16px;border:0;border-radius:14px;background:#206028;color:#fff;font-size:17px;font-weight:600;margin-top:16px;cursor:pointer;font-family:inherit}
-.btn[disabled]{opacity:.5}.lnk{display:inline-block;margin-top:10px;color:#164a1d;font-weight:600}
-.ok{background:#eaf3ec;border:1.5px solid #206028;border-radius:14px;padding:16px;font-size:15px}
-.err{color:#a8402a;font-size:14px;margin-top:10px}
+.btn{display:block;width:100%;padding:16px;border:0;border-radius:2px;background:#fabf10;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;font-size:17px;font-weight:600;margin-top:16px;cursor:pointer;font-family:inherit}
+.btn[disabled]{opacity:.5}.lnk{display:inline-block;margin-top:10px;color:#1a1a1a;font-weight:700}
+.pdfbtn{display:inline-block;margin-top:14px;padding:12px 18px;border:1.5px solid #1a1a1a;color:#1a1a1a;text-decoration:none;font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:14px}
+.pdfv{width:100%;height:75vh;border:1px solid #d9d9d9;margin-top:14px}
+.ok{background:#fff4cc;border:1.5px solid #1a1a1a;border-radius:2px;padding:16px;font-size:15px}
+.err{color:#c62828;font-size:14px;margin-top:10px}
 small.cond{display:block;margin-top:14px;color:#666;font-size:12px;line-height:1.5}
 </style>
 </head>
@@ -57,11 +60,13 @@ small.cond{display:block;margin-top:14px;color:#666;font-size:12px;line-height:1
     var p = d.presupuesto, lineas = d.lineas || [], firmado = !!p.firmado_at;
     var secciones = [];
     lineas.forEach(function (l) { var n = l.seccion || T.seccion; var s = null; for (var i = 0; i < secciones.length; i++) if (secciones[i].nombre === n) s = secciones[i]; if (!s) { s = { nombre: n, lineas: [] }; secciones.push(s); } s.lineas.push(l); });
-    var h = '<div class="c"><img src="logo-email.png" alt="BENSOL" style="height:40px"><h1 style="margin-top:14px">' + esc(p.titulo) + '</h1>'
+    var soloPdf = !lineas.length;
+    var h = '<div class="c cab"><img src="logo-email.png" alt="BENSOL" style="height:40px"><h1 style="margin-top:14px">' + esc(p.titulo) + '</h1>'
       + '<div class="sub">' + esc(d.cliente || '') + (p.tl_numero ? ' · ' + T.num + ' ' + esc(p.tl_numero) : '') + (p.enviado_correo_at ? ' · ' + T.enviado + ' ' + fecha(p.enviado_correo_at) : '') + (d.vence ? ' · ' + T.valido + ' ' + fecha(d.vence) : '') + '</div>'
-      + (d.pdf_url ? '<a class="lnk" href="' + esc(d.pdf_url) + '" target="_blank" rel="noopener">' + (firmado ? T.pdf_firmado : T.pdf) + '</a>' : '') + '</div>';
+      + (d.pdf_url ? '<a class="' + (soloPdf ? 'pdfbtn' : 'lnk') + '" href="' + esc(d.pdf_url) + '" target="_blank" rel="noopener">' + (firmado ? T.pdf_firmado : T.pdf) + '</a>' : '')
+      + (soloPdf && d.pdf_url ? '<iframe class="pdfv" src="' + esc(d.pdf_url) + '#view=FitH" title="PDF"></iframe>' : '') + '</div>';
     if (firmado) h += '<div class="c"><div class="ok">' + rellena(T.ya, { n: esc(p.firma_nombre), f: fecha(p.firmado_at) }) + '</div></div>';
-    h += '<div class="c">' + secciones.map(function (s) { return '<h2>' + esc(s.nombre) + '</h2>' + s.lineas.map(function (l) { return '<div class="l"><span class="p">' + eur(l.precio_venta) + '</span><div class="n">' + esc(l.descripcion) + '</div>' + (l.detalle_tecnico ? '<div class="d">' + esc(l.detalle_tecnico) + '</div>' : '') + '<div class="q">' + esc(l.cantidad) + ' ' + esc(l.unidad || 'ud') + ' × ' + eur(l.precio_tarifa) + (Number(l.dto_linea_pct) ? ' · −' + esc(l.dto_linea_pct) + ' %' : '') + '</div></div>'; }).join(''); }).join('')
+    if (!soloPdf || Number(d.totales && d.totales.base) > 0) h += '<div class="c">' + secciones.map(function (s) { return '<h2>' + esc(s.nombre) + '</h2>' + s.lineas.map(function (l) { return '<div class="l"><span class="p">' + eur(l.precio_venta) + '</span><div class="n">' + esc(l.descripcion) + '</div>' + (l.detalle_tecnico ? '<div class="d">' + esc(l.detalle_tecnico) + '</div>' : '') + '<div class="q">' + esc(l.cantidad) + ' ' + esc(l.unidad || 'ud') + ' × ' + eur(l.precio_tarifa) + (Number(l.dto_linea_pct) ? ' · −' + esc(l.dto_linea_pct) + ' %' : '') + '</div></div>'; }).join(''); }).join('')
       + '<div style="margin-top:14px">' + (d.totales.dto_global_pct ? '<div class="t"><span>' + T.suma + '</span><span>' + eur(d.totales.bruto) + '</span></div><div class="t"><span>' + T.dto + ' ' + esc(d.totales.dto_global_pct) + ' %</span><span>−' + eur(d.totales.bruto - d.totales.base) + '</span></div>' : '')
       + '<div class="t"><span>' + T.base + '</span><span>' + eur(d.totales.base) + '</span></div><div class="t"><span>' + T.iva + '</span><span>' + eur(d.totales.iva) + '</span></div><div class="t big"><span>' + T.total + '</span><span>' + eur(d.totales.total) + '</span></div></div>'
       + '<small class="cond">' + esc(d.condiciones || '') + '</small></div>';
@@ -73,7 +78,7 @@ small.cond{display:block;margin-top:14px;color:#666;font-size:12px;line-height:1
     app.innerHTML = h;
     if (firmado) return;
     var cv = document.getElementById('cv'), ctx = cv.getContext('2d'), ph = document.getElementById('ph'), hay = false, dib = false;
-    function tam() { var r = cv.getBoundingClientRect(); cv.width = Math.round(r.width * 2); cv.height = Math.round(r.height * 2); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#14170f'; }
+    function tam() { var r = cv.getBoundingClientRect(); cv.width = Math.round(r.width * 2); cv.height = Math.round(r.height * 2); ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1a1a1a'; }
     tam(); window.addEventListener('resize', tam);
     function pos(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * (cv.width / r.width), (e.clientY - r.top) * (cv.height / r.height)]; }
     cv.addEventListener('pointerdown', function (e) { e.preventDefault(); dib = true; cv.setPointerCapture(e.pointerId); var q = pos(e); ctx.beginPath(); ctx.moveTo(q[0], q[1]); });

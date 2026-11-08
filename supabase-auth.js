@@ -13,7 +13,7 @@ import { supabase } from './supabase-client.js';
 
 // Mapa fijo de empleados conocidos -> cuenta interna de Supabase Auth.
 // El nombre es el que ya se muestra en la pantalla de "¿Quién eres?".
-// (Se han quitado los empleados de Sysefen; los de BENSOL se dan de alta desde la app.)
+// Los empleados se dan de alta desde la app.
 export const CUENTAS = {
   'Administración': { email: 'info@bensolic.es', rol: 'admin'   },
 };
