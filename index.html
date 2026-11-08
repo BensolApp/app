@@ -4639,7 +4639,31 @@ const accionLlamar = (tel) => {
 const SVG_TUERCA = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2L5.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 const SVG_HOJA = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 17h18M5 17v-3a7 7 0 0 1 14 0v3M10 7.2V5h4v2.2M9 17v-5M15 17v-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+// La lista de «¿Quién eres?» se pide al servidor sin sesión (función lista_login),
+// para que en un móvil nuevo salgan todos sin tener que entrar antes como Administración.
+let listaLoginPedida = false;
+async function cargarListaLogin() {
+  if (listaLoginPedida) return; listaLoginPedida = true;
+  try {
+    const { data, error } = await supabase.rpc('lista_login');
+    if (error || !Array.isArray(data)) return;
+    let cambio = false;
+    data.forEach((e) => {
+      let local = S.users.find((u) => u.empId === e.id) || S.users.find((u) => u.nombre === e.nombre);
+      if (!local) { local = { id: 'e_' + e.id, nombre: e.nombre, rol: e.rol || 'operario', pin: null }; S.users.push(local); cambio = true; }
+      if (local.email !== (e.email || null) || local.rol !== e.rol || local.activo === false) cambio = true;
+      local.nombre = e.nombre; local.rol = e.rol || local.rol; local.email = e.email || null; local.empId = e.id; local.activo = true;
+      if (e.avatar_emoji) local.avatarEmoji = e.avatar_emoji;
+    });
+    // Quien ya no está activo deja de salir en la lista.
+    const ids = new Set(data.map((e) => e.id));
+    S.users.forEach((u) => { if (u.empId && u.rol !== 'admin' && !ids.has(u.empId) && u.activo !== false) { u.activo = false; cambio = true; } });
+    if (cambio) { save(); if (!V.user) render(); }
+  } catch (e) { /* sin conexión: se queda la lista guardada */ }
+}
+
 function vLogin() {
+  cargarListaLogin();
   const avc = (r) => r === 'jefe' ? 'background:var(--verde-c);color:#fff' : 'background:rgba(255,255,255,.18);color:#fff';
   // Administración fuera de la lista: se entra por la tuerca.
   // Orden fijo (2-11-2026): jefes de obra arriba, luego operarios, al final
@@ -11044,9 +11068,12 @@ A.presuExternoAbrir = (id) => {
 /** Elegir el PDF del presupuesto (hecho fuera de la app). */
 A.presuExternoPdf = () => {
   const s = V.sheet; if (!s || s.tipo !== 'presuExterno') return;
+  // El input tiene que estar en la página: en iPhone, si no lo está, el «change» no llega.
   const inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'application/pdf,.pdf';
+  inp.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+  document.body.appendChild(inp);
   inp.onchange = async () => {
-    const f = inp.files && inp.files[0]; if (!f) return;
+    const f = inp.files && inp.files[0]; setTimeout(() => inp.remove(), 0); if (!f) return;
     if (!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)) { avisar('Tiene que ser un PDF.'); return; }
     if (f.size > 10 * 1048576) { avisar('Ese PDF pesa más de 10 MB.'); return; }
     const data = await leerDataURL(f);
@@ -14174,6 +14201,10 @@ document.addEventListener('click', (e) => {
   if (a === 'fotoVisorCambiar') return A.fotoVisorCambiar();
   if (a === 'presuExternoAbrir') { e.stopPropagation(); return A.presuExternoAbrir(d.id); }
   if (a === 'presuExternoPdf') return A.presuExternoPdf();
+  if (a === 'presuExternoGuardar') return A.presuExternoGuardar();
+  if (a === 'tbSubir') { e.stopPropagation(); return tbReordenar(d.id, null, true); }
+  if (a === 'presuExternoCat') return A.presuExternoCat(d.k);
+  if (a === 'presuExternoRevisado') return A.presuExternoRevisado();
   if (a === 'presuPdfSubidoVer') return A.presuPdfSubidoVer();
   if (a === 'editarVisita') return A.editarVisita(d.id);
   if (a === 'enviarVisita') return A.enviarVisita();
