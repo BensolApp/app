@@ -15,7 +15,8 @@ export const LOCALES = { es: 'es-ES', en: 'en-GB', ca: 'ca-ES', de: 'de-DE' };
 export const idiomaValido = (x) => (IDIOMAS.some(([k]) => k === x) ? x : 'es');
 
 /** Importe con dos decimales en el formato del idioma, siempre con el € detrás. */
-export const eurIdioma = (n, idioma) => (Number(n) || 0).toLocaleString(LOCALES[idiomaValido(idioma)], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+// es/ca con el formato de de-DE: mismos separadores, pero agrupa también los miles de 4 cifras (1.570,00 €), como pide el manual de marca.
+export const eurIdioma = (n, idioma) => (Number(n) || 0).toLocaleString({ es: 'de-DE', ca: 'de-DE' }[idiomaValido(idioma)] || LOCALES[idiomaValido(idioma)], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 /** Fecha corta (6 nov) en el idioma. */
 export const fechaIdioma = (iso, idioma) => new Date(iso).toLocaleDateString(LOCALES[idiomaValido(idioma)], { day: '2-digit', month: 'short' });
 /** Fecha larga (6 de noviembre de 2026) en el idioma. */
