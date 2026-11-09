@@ -1,4 +1,4 @@
-const CACHE = 'bensol-v7';
+const CACHE = 'bensol-v8';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './supabase-client.js', './supabase-auth.js', './supabase-db.js', './visitas-schemas.js', './visitas-form.js', './visitas-db.js', './presu-idiomas.js', './icon-192.png?v=4', './icon-512.png?v=4', './icon-maskable.png?v=4', './logo-trans.png?v=4', './logo-blanco.png?v=4', './logo-s-blanco.png?v=4', './fondo-login.jpg'];
 
 // Al instalarse una versión nueva NO se activa sola: se queda esperando y la

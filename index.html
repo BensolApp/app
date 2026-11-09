@@ -3649,6 +3649,38 @@ A.horasGrupoAplicar = () => {
   toast('Horas aplicadas a ' + sel.length + (sel.length === 1 ? ' persona' : ' personas'));
   render();
 };
+// Añadir una persona de mano extra: categoría (Peón, Oficial u otra escrita) y
+// nombre opcional. Sin límite. Arranca con las mismas horas que el resto.
+A.extAdd = (cat) => {
+  const d = V.draft; if (!d) return;
+  sincronizarRuedas();
+  let c = cat === 'otra' ? String(d.extCat || '').trim() : cat;
+  if (!c) { avisar('Escribe la categoría (p. ej. Electricista, Pintor).'); return; }
+  c = c.replace(/\|/g, '/');
+  if (cat === 'otra' && EXT_CATS[c.toLowerCase().replace('ó', 'o')]) c = c.toLowerCase().replace('ó', 'o');
+  const nombre = String(d.extNombre || '').trim().replace(/\|/g, '/');
+  const usados = externosDelParte(d);
+  let id = 'ext:' + c + '|' + nombre;
+  if (usados.includes(id)) {
+    let n = 2;
+    while (usados.includes('ext:' + c + '|' + (nombre ? nombre + ' ' + n : n))) n++;
+    id = 'ext:' + c + '|' + (nombre ? nombre + ' ' + n : n);
+  }
+  d.extras = [...(d.extras || []), id];
+  const ref = d.incluidos.map((x) => d.horas[x] || 0).find((h) => h > 0);
+  if (ref) d.horas[id] = ref;
+  d.incluidos.push(id);
+  d.extNombre = ''; d.extCat = ''; d.verExtra = true;
+  render();
+};
+A.extQuitar = (id) => {
+  const d = V.draft; if (!d) return;
+  sincronizarRuedas();
+  d.extras = (d.extras || []).filter((x) => x !== id);
+  d.incluidos = d.incluidos.filter((x) => x !== id);
+  delete d.horas[id];
+  render();
+};
 A.addMat = (nombre) => { V.draft.mats.push({ id: uid(), nombre: nombre || '', cant: '', importe: '', compra: true }); render(); };
 A.quitarMat = (id) => { V.draft.mats = V.draft.mats.filter((m) => m.id !== id); render(); };
 A.toggleCompra = (id) => { const m = V.draft.mats.find((x) => x.id === id); m.compra = !m.compra; render(); };
@@ -4185,9 +4217,26 @@ const totalHoras = (p) => Object.keys(p.horas).reduce((t, k) => t + p.horas[k], 
 // Ayuda externa en el parte (sql/etapa54): peones y oficiales sin ficha de
 // empleado. Van dentro de `horas` con estos ids, así las ruedas, el total y
 // el PDF los tratan como a cualquiera; al guardar se separan de parte_horas.
-const EXTERNOS = [['ext:peon', 'Peón'], ['ext:oficial', 'Oficial'], ['ext:peon2', 'Peón 2'], ['ext:oficial2', 'Oficial 2']];
+// Desde la etapa 103 no hay tope: cada persona extra es 'ext:<categoría>|<nombre>'
+// (categoría peon, oficial o la que se escriba; nombre opcional). Los partes
+// antiguos traen 'ext:peon', 'ext:oficial', 'ext:peon2', 'ext:oficial2'.
+const EXT_ANTIGUOS = { peon: 'Peón', oficial: 'Oficial', peon2: 'Peón 2', oficial2: 'Oficial 2' };
+const EXT_CATS = { peon: 'Peón', oficial: 'Oficial' };
 const esExterno = (id) => String(id).startsWith('ext:');
-const nombreHoras = (id) => { const e = EXTERNOS.find((x) => x[0] === id); return e ? e[1] + ' (ayuda externa)' : userById(id).nombre; };
+const partesExterno = (id) => {
+  const k = String(id).slice(4);
+  if (EXT_ANTIGUOS[k]) return { cat: EXT_ANTIGUOS[k], nombre: '' };
+  const i = k.indexOf('|');
+  const c = i < 0 ? k : k.slice(0, i);
+  return { cat: EXT_CATS[c] || c, nombre: i < 0 ? '' : k.slice(i + 1) };
+};
+const etiquetaExterno = (id) => {
+  const { cat, nombre } = partesExterno(id);
+  if (!nombre) return cat;
+  return /^\d+$/.test(nombre) ? cat + ' ' + nombre : nombre + ' · ' + cat;
+};
+const nombreHoras = (id) => esExterno(id) ? etiquetaExterno(id) + ' (ayuda externa)' : userById(id).nombre;
+const externosDelParte = (d) => [...new Set([...(d.extras || []), ...d.incluidos.filter(esExterno), ...Object.keys(d.horas).filter((id) => esExterno(id) && d.horas[id] > 0)])];
 const totalMats = (p) => p.mats.reduce((t, m) => t + (parseFloat(String(m.importe).replace(',', '.')) || 0), 0);
 
 /* ajustes admin */
@@ -5410,7 +5459,7 @@ function relojHTML(scope, key, valMin, maxMin, editable, paso) {
         <div style="height:${pad}px;flex:none"></div>
       </div>
     </div>`;
-  return `<div class="rueda" data-scope="${scope}" data-key="${key}" data-max="${max}" data-h="${h0}" data-m="${m0}" style="position:relative;height:${RUEDA_VISIBLES * RUEDA_ITEM_H}px;margin:6px auto 2px;width:150px">
+  return `<div class="rueda" data-scope="${scope}" data-key="${esc(String(key))}" data-max="${max}" data-h="${h0}" data-m="${m0}" style="position:relative;height:${RUEDA_VISIBLES * RUEDA_ITEM_H}px;margin:6px auto 2px;width:150px">
     <div class="rueda-marco" style="height:${RUEDA_ITEM_H}px"></div>
     <div class="row" style="position:relative;z-index:1;height:100%;justify-content:center;align-items:stretch;gap:0">
       ${colHTML(horas, h0, (v) => v)}
@@ -5526,7 +5575,7 @@ function refrescarNumerosRueda() {
     document.querySelectorAll('[data-a="impGuardar"]').forEach((b) => { b.disabled = !!(V.impBusy || exceso); });
   } else if (V.view === 'p1' && V.draft) {
     const d = V.draft;
-    d.incluidos.forEach((id) => set(`[data-num="parteHoras"][data-id="${id}"]`, fmtH(d.horas[id] || 0) + ' h'));
+    d.incluidos.forEach((id) => set(`[data-num="parteHoras"][data-id="${CSS.escape(id)}"]`, fmtH(d.horas[id] || 0) + ' h'));
     set('[data-num="parteTotal"]', fmtH(d.incluidos.reduce((t, id) => t + (d.horas[id] || 0), 0)) + ' h');
   } else if (V.view === 'imputarGrupo') {
     const cand = impGrupoCandidatos(V.impFecha);
@@ -6440,21 +6489,34 @@ function vP1() {
         ${on ? relojHTML('parte', id, (d.horas[id] || 0) * 60, RELOJ_MAX_DEFECTO, true, 15) : ''}
       </div>`; }).join('')}
     </div>
-    ${(() => { const conHoras = EXTERNOS.filter(([id]) => d.incluidos.includes(id) && (d.horas[id] || 0) > 0); const abierto = d.verExtra || conHoras.length > 0; return `
+    ${(() => { const lista = externosDelParte(d); const conHoras = lista.filter((id) => d.incluidos.includes(id) && (d.horas[id] || 0) > 0); const abierto = d.verExtra || lista.length > 0; return `
     <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
       <div class="row" data-a="toggleExtra" style="padding:12px 13px;cursor:pointer;align-items:center;gap:10px">
-        <div class="grow"><div style="font:500 15px/1.1 var(--sans)">Mano extra</div>
-          <div class="tiny" style="margin-top:3px">${conHoras.length ? conHoras.map(([id, n]) => n + ' ' + fmtH(d.horas[id]) + ' h').join(' · ') : 'Peón u oficial sin ficha, si los hubo'}</div></div>
+        <div class="grow"><div style="font:500 15px/1.1 var(--sans)">Mano extra${lista.length ? ' (' + lista.length + ')' : ''}</div>
+          <div class="tiny" style="margin-top:3px">${conHoras.length ? conHoras.map((id) => esc(etiquetaExterno(id)) + ' ' + fmtH(d.horas[id]) + ' h').join(' · ') : 'Gente sin ficha: peones, oficiales u otros, los que hagan falta'}</div></div>
         <div style="font:400 18px/1 var(--sans);color:var(--t3);transform:rotate(${abierto ? 90 : 0}deg)">›</div>
       </div>
-      ${abierto ? EXTERNOS.map(([id, nombre], i) => { const on = d.incluidos.includes(id); return `<div style="padding:12px 13px;${i ? 'border-top:1px solid var(--l1)' : ''}">
-        <div class="row" data-a="togglePersona" data-id="${id}" style="gap:10px;cursor:pointer;padding:4px 0">
-          <div style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font:700 12px var(--sans);color:#fff;background:${on ? 'var(--ambar)' : 'transparent'};border:1.5px solid ${on ? 'var(--ambar)' : 'rgba(20,23,15,.25)'}">${on ? '✓' : ''}</div>
-          <div class="grow" style="font:500 15px/1.1 var(--sans);color:${on ? 'var(--tinta)' : 'rgba(20,23,15,.35)'}">${nombre}</div>
-          <div class="num" data-num="parteHoras" data-id="${id}" style="font-size:16px;color:${on ? 'var(--tinta)' : 'rgba(20,23,15,.3)'}">${on ? fmtH(d.horas[id] || 0) + ' h' : 'tocar para incluir'}</div>
+      ${abierto ? lista.map((id) => { const on = d.incluidos.includes(id); return `<div style="padding:12px 13px;border-top:1px solid var(--l1)">
+        <div class="row" style="gap:10px;padding:4px 0;align-items:center">
+          <div class="row grow" data-a="togglePersona" data-id="${esc(id)}" style="gap:10px;cursor:pointer;align-items:center">
+            <div style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font:700 12px var(--sans);color:#fff;background:${on ? 'var(--ambar)' : 'transparent'};border:1.5px solid ${on ? 'var(--ambar)' : 'rgba(20,23,15,.25)'}">${on ? '✓' : ''}</div>
+            <div class="grow" style="font:500 15px/1.1 var(--sans);color:${on ? 'var(--tinta)' : 'rgba(20,23,15,.35)'}">${esc(etiquetaExterno(id))}</div>
+            <div class="num" data-num="parteHoras" data-id="${esc(id)}" style="font-size:16px;color:${on ? 'var(--tinta)' : 'rgba(20,23,15,.3)'}">${on ? fmtH(d.horas[id] || 0) + ' h' : 'tocar para incluir'}</div>
+          </div>
+          <button class="av" data-a="extQuitar" data-id="${esc(id)}" style="width:26px;height:26px;background:#eeece5;font-size:14px;color:var(--t2)">×</button>
         </div>
         ${on ? relojHTML('parte', id, (d.horas[id] || 0) * 60, RELOJ_MAX_DEFECTO, true, 15) : ''}
-      </div>`; }).join('') + '<div class="tiny" style="padding:0 13px 12px">Solo cuentan en este parte: no fichan ni van a ninguna planilla. Su coste se pone en Costes de personal.</div>' : ''}
+      </div>`; }).join('') + `<div style="padding:12px 13px;border-top:1px solid var(--l1)">
+        <input class="inp" data-f="extNombre" value="${esc(d.extNombre || '')}" placeholder="Nombre (opcional)" autocapitalize="words" style="padding:10px 12px;font-size:14px">
+        <div class="row g8" style="margin-top:8px;flex-wrap:wrap">
+          <div class="badge" data-a="extAdd" data-id="peon" style="cursor:pointer;padding:8px 12px">+ Peón</div>
+          <div class="badge" data-a="extAdd" data-id="oficial" style="cursor:pointer;padding:8px 12px">+ Oficial</div>
+        </div>
+        <div class="row g8" style="margin-top:8px;align-items:center">
+          <input class="inp grow" data-f="extCat" value="${esc(d.extCat || '')}" placeholder="Otra categoría (Electricista, Pintor…)" style="padding:10px 12px;font-size:14px">
+          <div class="badge" data-a="extAdd" data-id="otra" style="cursor:pointer;padding:8px 12px">+ Añadir</div>
+        </div>
+      </div>` + '<div class="tiny" style="padding:0 13px 12px">Solo cuentan en este parte: no fichan ni van a ninguna planilla. Peones y oficiales van a su tarifa de Costes de personal; otras categorías, a la de oficial.</div>' : ''}
     </div>`; })()}
     <div class="row" style="justify-content:space-between;padding:11px 4px 0"><div class="sub">Total del parte</div><div class="num" data-num="parteTotal" style="font-size:17px">${fmtH(total)} h</div></div>
 
@@ -12959,7 +13021,7 @@ function sheet() {
       <div style="font:600 22px/1.15 var(--cond)">Mismas horas para varios</div>
       <div class="sub" style="margin-top:6px">Marca a quiénes les aplica y pon el tiempo una sola vez.</div>
       <div class="col g8" style="margin-top:14px;max-height:180px;overflow-y:auto">
-        ${equipo().map((uu) => { const on = sel.includes(uu.id); return `<div class="row" data-a="horasGrupoToggle" data-id="${uu.id}" style="padding:9px 4px;cursor:pointer">
+        ${[...equipo(), ...(V.draft ? externosDelParte(V.draft).map((id) => ({ id, nombre: etiquetaExterno(id) + ' (extra)' })) : [])].map((uu) => { const on = sel.includes(uu.id); return `<div class="row" data-a="horasGrupoToggle" data-id="${esc(uu.id)}" style="padding:9px 4px;cursor:pointer">
           <div style="width:22px;height:22px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;font:700 12px var(--sans);color:#fff;background:${on ? 'var(--verde)' : 'transparent'};border:1.5px solid ${on ? 'var(--verde)' : 'rgba(20,23,15,.25)'}">${on ? '✓' : ''}</div>
           <div class="grow" style="font:500 15px var(--sans)">${esc(uu.nombre)}</div>
         </div>`; }).join('')}
@@ -14407,6 +14469,8 @@ document.addEventListener('click', (e) => {
   if (a === 'planFueraMover') return A.planFuera(d.id, true);
   if (a === 'planFueraIgnorar') return A.planFuera(d.id, false);
   if (a === 'parteDePlan') return A.nuevoParte(d.id, d.plan);
+  if (a === 'extAdd') return A.extAdd(d.id);
+  if (a === 'extQuitar') return A.extQuitar(d.id);
   if (a === 'toggleExtra') { if (V.draft) { sincronizarRuedas(); V.draft.verExtra = !V.draft.verExtra; } return render(); }
   if (a === 'parteOtraObraSeguro') return A.nuevoParte(d.id, null, true);
   if (a === 'parteAvance') return A.parteAvance(d.id, d.p);
@@ -14664,6 +14728,7 @@ document.addEventListener('input', (e) => {
   if (f === 'presuOpcionGrua') { clearTimeout(presuKwhT); presuKwhT = setTimeout(() => A.presuOpcionGrua(t.value), 900); return; }
   if (f === 'presuExtTl') { if (V.sheet) V.sheet.tl = t.value; return; }
   if (f === 'presuExtTitulo') { if (V.sheet) V.sheet.titulo = t.value; return; }
+  if (f === 'extNombre' || f === 'extCat') { if (V.draft) V.draft[f] = t.value; return; }
   if (f === 'categoriaOtra') { if (V.draft) V.draft.categoriaOtra = t.value; return; }
   if (f === 'faseNota') { if (V.sheet) V.sheet.nota = t.value; return; }
   if (f === 'faseNombre') { if (V.sheet) V.sheet.nombre = t.value; return; }
