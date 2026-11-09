@@ -3405,22 +3405,45 @@ A.abrirCostes = async () => {
   render();
 };
 // La tarifa vigente de una persona, o de un rol externo ('ext:peon', 'ext:oficial').
-const EXTRA_COSTES = [['ext:peon', 'Peón', 'peon'], ['ext:oficial', 'Oficial', 'oficial']];
-const extraRolDe = (id) => (EXTRA_COSTES.find((x) => x[0] === id) || [])[2] || null;
+// Desde la etapa 104, además de peón y oficial, cualquier categoría: las que ya
+// tienen tarifa y las que se han escrito en algún parte. Clave en minúsculas.
+const normCat = (c) => { const k = String(c || '').trim().toLowerCase().replace(/\|/g, '/'); return k === 'peón' ? 'peon' : k; };
+const nombreCatExtra = (k) => EXT_CATS[k] || (k.charAt(0).toUpperCase() + k.slice(1));
+const catsExtra = () => {
+  const set = new Set(['peon', 'oficial']);
+  (V.costesEmp || []).forEach((c) => { if (c.externo) set.add(c.externo); });
+  (S.partes || []).forEach((p) => Object.keys(p.horas || {}).forEach((id) => {
+    if (!esExterno(id)) return;
+    const k = id.slice(4);
+    if (EXT_ANTIGUOS[k]) return;
+    const c = normCat(k.split('|')[0]); if (c && !c.startsWith('peon') && !c.startsWith('oficial')) set.add(c);
+  }));
+  (V.costesCatsNuevas || []).forEach((c) => set.add(c));
+  return [...set];
+};
+const EXTRA_COSTES_FN = () => catsExtra().map((k) => ['ext:' + k, nombreCatExtra(k), k]);
+const extraRolDe = (id) => (String(id).startsWith('ext:') ? normCat(String(id).slice(4)) : null);
 const costeVigente = (id) => {
   const rol = extraRolDe(id);
   const mias = (V.costesEmp || []).filter((c) => (rol ? c.externo === rol : c.empleado_id === id));
   return mias.find((c) => !c.hasta && c.desde <= hoyISO()) || mias[0] || null;
 };
 A.costeEmpNuevo = (empId) => { const v = costeVigente(empId); V.sheet = { tipo: 'costeEmp', empId, coste: v ? String(v.coste_hora).replace('.', ',') : '', desde: hoyISO(), busy: false }; render(); };
+A.costeCatNueva = () => { V.sheet = { tipo: 'costeEmp', empId: null, nuevaCat: true, cat: '', coste: '', desde: hoyISO(), busy: false }; render(); };
 A.costeEmpGuardar = async () => {
   const s = V.sheet; if (!s || s.tipo !== 'costeEmp' || s.busy) return;
+  if (s.nuevaCat) {
+    const k = normCat(s.cat);
+    if (!k) { avisar('Escribe la categoría (p. ej. Electricista).'); return; }
+    s.empId = 'ext:' + k;
+  }
   const coste = Number(String(s.coste).replace(',', '.'));
   if (!(coste >= 0) || !s.desde) { avisar('Pon el coste por hora y desde qué día.'); return; }
   s.busy = true; render();
   try {
     const rol = extraRolDe(s.empId);
     await Bensol.db.guardarCosteEmpleado(rol ? { externo: rol, coste_hora: coste, desde: s.desde } : { empleado_id: s.empId, coste_hora: coste, desde: s.desde });
+    if (rol) V.costesCatsNuevas = [...new Set([...(V.costesCatsNuevas || []), rol])];
     V.sheet = null; toast('Tarifa guardada.'); await A.abrirCostes();
   } catch (e) { s.busy = false; avisar(faltaEtapa59(e) ? 'Falta ejecutar sql/etapa59 en Supabase.' : 'No se pudo guardar: ' + msgError(e)); render(); }
 };
@@ -3430,11 +3453,13 @@ function costesListaHTML() {
   if (!V.costesEmp && !V.costesEmpError) return '<div class="card"><div class="sub">Cargando…</div></div>';
   // Al final, la mano extra: peón y oficial sin ficha (lo que cobra la empresa
   // de albañilería por hora, por ejemplo). Sus horas van en los partes.
-  const extras = q ? EXTRA_COSTES.filter((x) => x[1].toLowerCase().includes(q)) : EXTRA_COSTES;
+  const todas = EXTRA_COSTES_FN();
+  const extras = q ? todas.filter((x) => x[1].toLowerCase().includes(q)) : todas;
   const filas = [...gente, ...extras.map(([id, nombre]) => ({ id, nombre, extra: true }))];
   if (!filas.length) return '<div class="card"><div class="sub">Nadie con ese nombre.</div></div>';
   return filas.map((r, i) => {
       const v = costeVigente(r.id);
+      const ultima = r.extra && (i === filas.length - 1);
       const hist = (V.costesEmp || []).filter((c) => (r.extra ? c.externo === extraRolDe(r.id) : c.empleado_id === r.id));
       const cab = r.extra && (i === 0 || !filas[i - 1].extra) ? '<div class="lbl" style="margin:16px 0 8px">Mano extra (sin ficha)</div>' : '';
       return cab + `<div class="card" style="margin-bottom:10px">
@@ -3442,9 +3467,9 @@ function costesListaHTML() {
           <div class="grow"><div style="font:600 16px var(--sans)">${esc(r.nombre)}${r.extra ? ' <span class="tiny">externo</span>' : ''}</div>
             <div class="tiny" style="margin-top:4px">${v ? `Desde ${fechaCorta(v.desde)}${hist.length > 1 ? ' · ' + hist.length + ' tarifas' : ''}` : '<span style="color:var(--rojo)">Sin tarifa · cuenta a 0 €</span>'}</div></div>
           <div class="num" style="font-size:22px">${v ? esc(String(v.coste_hora).replace('.', ',')) + ' €/h' : '—'}</div>
-          <button class="pill" data-a="costeEmpNuevo" data-id="${r.id}" style="padding:8px 12px">${v ? 'Cambiar' : 'Poner'}</button>
+          <button class="pill" data-a="costeEmpNuevo" data-id="${esc(r.id)}" style="padding:8px 12px">${v ? 'Cambiar' : 'Poner'}</button>
         </div>
-      </div>`;
+      </div>` + (ultima ? '<button class="pill" data-a="costeCatNueva" style="padding:10px 14px;margin-bottom:10px">+ Otra categoría (Electricista, Pintor…)</button><div class="tiny" style="margin-bottom:10px">Las categorías sin tarifa propia cuentan a la tarifa de oficial.</div>' : '');
     }).join('');
 }
 function vCostesPersonal() {
@@ -6516,7 +6541,7 @@ function vP1() {
           <input class="inp grow" data-f="extCat" value="${esc(d.extCat || '')}" placeholder="Otra categoría (Electricista, Pintor…)" style="padding:10px 12px;font-size:14px">
           <div class="badge" data-a="extAdd" data-id="otra" style="cursor:pointer;padding:8px 12px">+ Añadir</div>
         </div>
-      </div>` + '<div class="tiny" style="padding:0 13px 12px">Solo cuentan en este parte: no fichan ni van a ninguna planilla. Peones y oficiales van a su tarifa de Costes de personal; otras categorías, a la de oficial.</div>' : ''}
+      </div>` + '<div class="tiny" style="padding:0 13px 12px">Solo cuentan en este parte: no fichan ni van a ninguna planilla. El coste sale de la tarifa de su categoría en Costes de personal (sin tarifa propia, la de oficial).</div>' : ''}
     </div>`; })()}
     <div class="row" style="justify-content:space-between;padding:11px 4px 0"><div class="sub">Total del parte</div><div class="num" data-num="parteTotal" style="font-size:17px">${fmtH(total)} h</div></div>
 
@@ -13881,9 +13906,10 @@ function sheet() {
     </div></div>`;
   }
   if (s.tipo === 'costeEmp') {
-    const r = empRowById(s.empId) || (extraRolDe(s.empId) ? { nombre: (EXTRA_COSTES.find((x) => x[0] === s.empId) || [])[1] + ' externo' } : {});
+    const r = s.nuevaCat ? { nombre: 'nueva categoría' } : (empRowById(s.empId) || (extraRolDe(s.empId) ? { nombre: nombreCatExtra(extraRolDe(s.empId)) + ' externo' } : {}));
     return `<div class="sheet"><div>
       <div style="font:600 23px/1.15 var(--cond)">Coste por hora · ${esc(r.nombre || '')}</div>
+      ${s.nuevaCat ? `<div class="lbl" style="margin:14px 0 6px">Categoría</div><input class="inp" data-f="costeCat" value="${esc(s.cat || '')}" placeholder="Electricista, Pintor, Fontanero…" autocapitalize="words"><div class="tiny" style="margin-top:4px">Igual que se escribe en el parte (da igual mayúsculas).</div>` : ''}
       <div class="sub" style="margin-top:8px">Coste total para la empresa de una hora de esta persona. La tarifa anterior se cierra sola el día antes.</div>
       <div class="row g8" style="margin-top:14px">
         <div class="grow"><div class="lbl" style="margin-bottom:6px">€ por hora</div><input class="inp" data-f="costeValor" value="${esc(s.coste)}" inputmode="decimal" placeholder="24,50"></div>
@@ -14470,6 +14496,7 @@ document.addEventListener('click', (e) => {
   if (a === 'planFueraIgnorar') return A.planFuera(d.id, false);
   if (a === 'parteDePlan') return A.nuevoParte(d.id, d.plan);
   if (a === 'extAdd') return A.extAdd(d.id);
+  if (a === 'costeCatNueva') return A.costeCatNueva();
   if (a === 'extQuitar') return A.extQuitar(d.id);
   if (a === 'toggleExtra') { if (V.draft) { sincronizarRuedas(); V.draft.verExtra = !V.draft.verExtra; } return render(); }
   if (a === 'parteOtraObraSeguro') return A.nuevoParte(d.id, null, true);
@@ -14737,6 +14764,7 @@ document.addEventListener('input', (e) => {
   if (f === 'planBuscar') { if (V.sheet) { V.sheet.buscar = t.value; const box = document.getElementById('plan-obras'); if (box) box.innerHTML = planObrasListaHTML(V.sheet); } return; }
   if (f === 'planHora') { if (V.sheet) V.sheet.hora = t.value; return; }
   if (f === 'planNota') { if (V.sheet) V.sheet.nota = t.value; return; }
+  if (f === 'costeCat') { if (V.sheet) V.sheet.cat = t.value; return; }
   if (f === 'costesBuscar') { V.costesBuscar = t.value; const box = document.getElementById('costes-lista'); if (box) box.innerHTML = costesListaHTML(); return; }
   if (f === 'costeValor') { if (V.sheet) V.sheet.coste = t.value; return; }
   if (f === 'costeDesde') { if (V.sheet) V.sheet.desde = t.value; return; }
