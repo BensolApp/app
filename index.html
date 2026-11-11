@@ -10,8 +10,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BENSOL">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png?v=4">
-<link rel="icon" href="icon-192.png?v=4">
+<link rel="apple-touch-icon" href="icon-180.png?v=5">
+<link rel="icon" href="icon-192.png?v=5">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -152,7 +152,7 @@ a:hover{color:var(--tinta)}
   width:100%;
   height:104px;
   margin-bottom:14px;
-  background:url('logo-trans.png?v=4') center/contain no-repeat;
+  background:url('logo-trans.png?v=5') center/contain no-repeat;
   opacity:.32;
   pointer-events:none;
 }
@@ -233,7 +233,7 @@ a:hover{color:var(--tinta)}
 /* Sobre fondo oscuro (login, PIN, parte guardado) la marca de agua va en
    blanco y solo el sello de la S: el logotipo entero se repetía con el de
    arriba y, al ser negro, se veía como una mancha. */
-.scroll.marca-clara::before{background-image:url('logo-s-blanco.png?v=4');opacity:.3}
+.scroll.marca-clara::before{background-image:url('logo-s-blanco.png?v=5');opacity:.3}
 
 /* --- Portada -------------------------------------------------------------
    Foto de fondo fija (no se mueve al desplazar la lista) y un velo oscuro
@@ -1227,7 +1227,7 @@ function avatarHTML(userId, estilo, attrs, clases) {
   return `<div class="${cl}"${a} style="${estilo}">${esc(ini(u.nombre))}</div>`;
 }
 // Marca pequeña (logo oficial + "BENSOL") para cabeceras internas. Reutiliza
-// icon-512.png?v=4 (el mismo icono ya usado como icono de la app/PWA).
+// icon-512.png?v=5 (el mismo icono ya usado como icono de la app/PWA).
 // Junto a la marca, un icono para abrir la pantalla en otra pestaña (
 // 30-10-2026): en ordenador, para poner dos presupuestos o dos clientes uno al
 // lado del otro. En la app instalada del móvil no sale (abriría el navegador).
@@ -1235,7 +1235,7 @@ const abrirAparteIcono = (oscuro) => (window.innerWidth >= 600 || !enAppInstalad
   ? `<span data-a="abrirAparte" title="Abrir esta pantalla en otra pestaña" style="display:inline-flex;align-items:center;margin-left:4px;padding:2px 4px;cursor:pointer;color:${oscuro ? 'rgba(255,255,255,.5)' : 'var(--t3)'}"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3H3.5A1.5 1.5 0 0 0 2 4.5v8A1.5 1.5 0 0 0 3.5 14h8a1.5 1.5 0 0 0 1.5-1.5V10"/><path d="M9.5 2H14v4.5"/><path d="M14 2 7.5 8.5"/></svg></span>`
   : '');
 const marcaBensol = (oscuro) => `<div class="row g8" style="margin-bottom:9px">
-    <img src="icon-512.png?v=4" alt="" style="width:16px;height:16px;border-radius:5px;flex:none">
+    <img src="icon-512.png?v=5" alt="" style="width:16px;height:16px;border-radius:5px;flex:none">
     <span style="font:700 10px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:${oscuro ? 'rgba(255,255,255,.5)' : 'var(--t3)'}">BENSOL</span>${abrirAparteIcono(oscuro)}
   </div>`;
 
@@ -3945,8 +3945,8 @@ function cargarLibsPdf() {
     document.head.appendChild(t);
   });
   libsPdf = Promise.all([
-    meter('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
-    meter('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    meter('vendor/html2canvas.min.js'),
+    meter('vendor/jspdf.umd.min.js'),
   ]).catch((e) => { libsPdf = null; throw e; });
   return libsPdf;
 }
@@ -4747,7 +4747,7 @@ function vLogin() {
     .sort((a, b) => ((ORDEN_ROL[a.rol] ?? 9) - (ORDEN_ROL[b.rol] ?? 9)) || String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es'));
   return `<div class="scroll login-fondo" style="padding:calc(50px + var(--safe-t)) 22px calc(22px + var(--safe-b))">
     <div class="login-marca">
-      <img src="logo-blanco.png?v=4" alt="BENSOL" style="width:230px;max-width:70%;display:block">
+      <img src="logo-blanco.png?v=5" alt="BENSOL" style="width:230px;max-width:70%;display:block">
       <div class="sub" style="color:rgba(255,255,255,.8);margin-top:10px;letter-spacing:.14em;text-shadow:0 1px 8px rgba(0,0,0,.7)">CONTROL DE OBRA</div>
       <div class="login-lema">Construimos, reformamos y rehabilitamos</div>
     </div>
@@ -4997,7 +4997,7 @@ function vObra() {
     <div class="row g8" style="align-items:center;flex-wrap:wrap"><span style="font:600 27px/1.1 var(--cond)">${esc(codigoObra(o) || o.titulo)}</span>${chipsCategorias(o, true)}<span class="grow"></span><span class="tiny" style="color:rgba(255,255,255,.55)">${esc(estadoObraTxt(o))}</span></div>
     ${codigoObra(o) ? `<div style="font:600 17px/1.3 var(--sans);margin-top:8px">${esc((o.nombre && o.nombre !== o.cliente ? o.nombre : '') || o.cliente || o.titulo)}</div>${o.nombre && o.nombre !== o.cliente && o.cliente ? `<div class="sub" style="color:rgba(255,255,255,.55);margin-top:2px">${esc(o.cliente)}</div>` : ''}` : (o.cliente ? `<div style="font:600 17px/1.3 var(--sans);margin-top:8px">${esc(o.cliente)}</div>` : '')}
     <div style="font:400 15px/1.35 var(--sans);color:rgba(255,255,255,.7);margin-top:4px">${esc(direccionObra(o) || 'Sin dirección')}</div>
-    ${o.tlId ? '<div class="tiny" style="color:var(--verde-c);margin-top:6px">✓ Cliente enlazado con Teamleader</div>' : ''}
+    ${o.tlId ? '<div class="tiny" style="color:var(--verde-c);margin-top:6px">✓ Cliente enlazado con el CRM</div>' : ''}
     ${o.dir ? `<div class="ag-acciones" style="justify-content:flex-start;gap:26px">${accionComoLlegar(o.dir)}</div>` : ''}
     ${puedeObras() ? `<div class="row g8" style="margin-top:16px">
       ${puedeCrear() ? `<button class="pill pill-verde grow" data-a="nuevoParte" data-id="${o.id}" style="padding:14px">Nuevo parte</button>` : ''}
@@ -6243,7 +6243,7 @@ function pintarPlanilla(userId, mesBase) {
       <div><div class="lb">Por la empresa</div>
         <div class="zn" style="flex-direction:column;gap:1mm">
           ${selloNombre ? `<div style="font:500 24px var(--script);line-height:1">${esc(selloNombre)}</div>` : ''}
-          <img src="logo-trans.png?v=4" alt="" style="height:9mm;opacity:.9"></div>
+          <img src="logo-trans.png?v=5" alt="" style="height:9mm;opacity:.9"></div>
         <div class="nm">${esc(selloNombre || S.empresa)}</div></div>
     </div>
     ${docPie()}
@@ -6281,7 +6281,7 @@ function vAjustes() {
   return `<div class="hdr"><div class="h1">${esAdmin() ? 'Ajustes' : 'Perfil'}</div></div>
   <div class="scroll pad pb-nav">
     <div class="row g10" style="align-items:center;margin-bottom:16px">
-      <img src="logo-trans.png?v=4" alt="BENSOL" style="height:32px;flex:none">
+      <img src="logo-trans.png?v=5" alt="BENSOL" style="height:32px;flex:none">
       <div class="grow"><div style="font:700 15px/1 var(--cond)">BENSOL</div>
       <div class="tiny" style="margin-top:3px">Ingeniería y Construcción</div></div>
     </div>
@@ -6305,7 +6305,7 @@ function vAjustes() {
     </div>
 
     ${esAdmin() ? `<div class="card" style="margin-bottom:12px">
-      <div class="row" style="gap:12px;margin-bottom:12px"><img src="logo-trans.png?v=4" alt="" style="height:38px"><div class="lbl grow">Empresa</div></div>
+      <div class="row" style="gap:12px;margin-bottom:12px"><img src="logo-trans.png?v=5" alt="" style="height:38px"><div class="lbl grow">Empresa</div></div>
       <input class="inp" data-f="empresa" value="${esc(S.empresa)}" placeholder="Nombre de la empresa">
       <input class="inp" data-f="cif" value="${esc(S.cif)}" style="margin-top:8px" placeholder="CIF (sale en el PDF)">
       <input class="inp" data-f="emailCopia" value="${esc(S.emailCopia)}" style="margin-top:8px" type="email" inputmode="email" autocapitalize="off" placeholder="Email de copia (gestoría)">
@@ -6681,7 +6681,7 @@ function docParteHTML(d, previa) {
       <div class="row" style="align-items:flex-start;justify-content:space-between">
         <div><div style="font:600 15px/1 var(--sans)">${esc(S.empresa)}</div>
         <div class="tiny" style="margin-top:5px">PARTE DE TRABAJO · borrador</div></div>
-        <img src="logo-trans.png?v=4" alt="" style="height:34px">
+        <img src="logo-trans.png?v=5" alt="" style="height:34px">
       </div>
       <div class="hr"></div>
       <div style="font:600 16px/1.2 var(--sans)">${esc(nombreObra(o))}</div>
@@ -6728,7 +6728,7 @@ function vP3() {
 function vOk() {
   const p = S.partes.find((x) => x.id === V.verParte);
   return `<div class="scroll sin-marca" style="background:var(--verde);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center">
-    <img src="logo-blanco.png?v=4" alt="" style="width:150px;max-width:52%;margin-bottom:26px">
+    <img src="logo-blanco.png?v=5" alt="" style="width:150px;max-width:52%;margin-bottom:26px">
     <div class="av" style="width:78px;height:78px;background:#fff;color:var(--verde-o);font-size:34px">✓</div>
     <div style="font:600 30px/1.1 var(--cond);color:#fff;margin-top:22px">Parte guardado</div>
     <div style="font:400 15px/1.5 var(--sans);color:rgba(255,255,255,.85);margin-top:10px;max-width:260px">${esc(p.ref)} ${p.firma ? 'firmado por el cliente.' : 'guardado sin firma: cliente no presente.'}${
@@ -9616,7 +9616,7 @@ function cargarPdfLib() {
   if (libPdfLib) return libPdfLib;
   libPdfLib = new Promise((ok, mal) => {
     const t = document.createElement('script');
-    t.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js';
+    t.src = 'vendor/pdf-lib.min.js';
     t.onload = ok; t.onerror = () => mal(new Error('No se pudo cargar pdf-lib'));
     document.head.appendChild(t);
   }).catch((e) => { libPdfLib = null; throw e; });
@@ -10862,7 +10862,7 @@ function seguimientoHTML(d) {
   return `<div class="card" style="margin-top:12px;padding:12px 15px">
     <div class="row g8" style="align-items:center"><span class="dot" style="width:10px;height:10px;background:${sg.color}"></span><span style="font:600 15px var(--sans)">${esc(sg.txt)}</span></div>
     ${d.pdf_subido_ruta ? `<button class="pill" data-a="presuPdfSubidoVer" style="margin-top:10px;padding:9px 12px;background:var(--l1);color:var(--tinta)">Ver el PDF del presupuesto</button>` : ''}
-    <div class="row g8" style="align-items:center;margin-top:10px"><span class="lbl" style="font-size:11px;flex:none">Nº Teamleader</span><input class="inp" data-f="presuTlNumero" value="${esc(d.tl_numero || '')}" placeholder="2026/634" style="width:120px;padding:7px 9px"><span class="tiny">La API no lo da: se apunta a mano y sale en la lista.</span></div>
+    <div class="row g8" style="align-items:center;margin-top:10px"><span class="lbl" style="font-size:11px;flex:none">Nº presupuesto</span><input class="inp" data-f="presuTlNumero" value="${esc(d.tl_numero || '')}" placeholder="2026/634" style="width:120px;padding:7px 9px"><span class="tiny">La API no lo da: se apunta a mano y sale en la lista.</span></div>
     <div style="margin-top:10px">${pasos.map(([t, sub, ok]) => `<div class="row g10" style="align-items:center;padding:7px 0;border-bottom:1px solid var(--l1)">
       <span class="dot" style="width:9px;height:9px;background:${ok ? 'var(--verde)' : 'rgba(20,23,15,.15)'}"></span>
       <span class="grow" style="font:500 14px var(--sans);${ok ? '' : 'color:var(--t2)'}">${t}</span><span class="tiny">${esc(sub)}</span></div>`).join('')}</div>
@@ -11165,7 +11165,7 @@ A.presuExternoPdf = () => {
     if (f.size > 10 * 1048576) { avisar('Ese PDF pesa más de 10 MB.'); return; }
     const data = await leerDataURL(f);
     s.pdf = { data, nombre: f.name, kb: Math.round(f.size / 1024) };
-    if (!s.titulo) s.titulo = String(f.name).replace(/\.pdf$/i, '').slice(0, 120);
+    if (!s.titulo) s.titulo = String(f.name).replace(/\.pdf$/i, '').replace(/_/g, ' ').replace(/\s{2,}/g, ' ').trim().slice(0, 120);
     render();
   };
   inp.click();
@@ -11589,7 +11589,7 @@ async function clientesPendientesAHoja() {
   try {
     const r = await visitasDB.clientesPendientesADrive();
     if (r && r.apuntados) await A.cargarAgenda();
-  } catch (e) { registrarError('clientesPendientesAHoja', e); }
+  } catch (_) { /* cliente-drive aún sin configurar: en silencio */ }
 }
 
 /* ---------- acciones: un solo despachador para todo lo que empieza por ag_ ---------- */
@@ -11700,7 +11700,7 @@ async function clienteADrive(id) {
     const r = await visitasDB.clienteADrive(id);
     V.cliDrive = { id, estado: 'ok', url: (r && r.hoja_url) || '', fila: (r && r.fila) || 0, aviso: (r && r.aviso) || '' };
   } catch (e) {
-    V.cliDrive = { id, estado: 'error', error: msgError(e) };
+    V.cliDrive = null; // cliente-drive aún sin configurar: en silencio (la ficha sigue con su botón de reintento)
   }
   render();
 }
@@ -14104,7 +14104,7 @@ const DOC_CSS = `<style>
 // Cabecera de control. `ref` es el número del documento (PT-0012, mes…).
 function docCabecera(titulo, codigo, ref, fecha, rev) {
   return `<table class="ctl"><tr>
-    <td rowspan="2" style="width:46mm;text-align:center;padding:2mm"><img src="logo-trans.png?v=4" alt="BENSOL" style="height:15mm;max-width:42mm;object-fit:contain"></td>
+    <td rowspan="2" style="width:46mm;text-align:center;padding:2mm"><img src="logo-trans.png?v=5" alt="BENSOL" style="height:15mm;max-width:42mm;object-fit:contain"></td>
     <td rowspan="2" class="tt" style="font-size:15pt;text-align:center">${esc(titulo)}${ref ? `<div style="font:400 9pt Arial,sans-serif;letter-spacing:0;text-transform:none;margin-top:1mm">Nº ${esc(ref)}</div>` : ''}</td>
     <td class="lb">Documento</td><td class="vl">${esc(codigo)}</td></tr>
     <tr><td class="lb">Rev. / Fecha</td><td class="vl">${esc(rev || '00')} · ${esc(fecha || '')}</td></tr>
@@ -14888,7 +14888,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     const div = document.createElement('div');
     div.id = 'actualizar';
     div.innerHTML = `<div>
-      <img src="logo-blanco.png?v=4" alt="" style="height:40px;margin-bottom:22px;opacity:.9">
+      <img src="logo-blanco.png?v=5" alt="" style="height:40px;margin-bottom:22px;opacity:.9">
       <div style="font:700 28px/1.1 var(--cond);color:#fff">Hay una versión nueva</div>
       <div style="font:400 14px/1.5 var(--sans);color:rgba(255,255,255,.7);margin-top:10px">La app se ha actualizado. Para seguir hace falta cargarla; tarda un segundo. Lo que tengas a medias queda guardado en el móvil.</div>
       <button class="btn btn-verde" id="actualizar-btn" style="margin-top:26px">Actualizar</button>

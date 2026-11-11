@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
 <title>Presupuesto · BENSOL</title>
 <link rel="icon" href="icon-192.png">
 <style>
@@ -61,10 +62,11 @@ small.cond{display:block;margin-top:14px;color:#666;font-size:12px;line-height:1
     var secciones = [];
     lineas.forEach(function (l) { var n = l.seccion || T.seccion; var s = null; for (var i = 0; i < secciones.length; i++) if (secciones[i].nombre === n) s = secciones[i]; if (!s) { s = { nombre: n, lineas: [] }; secciones.push(s); } s.lineas.push(l); });
     var soloPdf = !lineas.length;
+    var pdfUrl = /^https:\/\//.test(d.pdf_url || '') ? d.pdf_url : '';
     var h = '<div class="c cab"><img src="logo-email.png" alt="BENSOL" style="height:40px"><h1 style="margin-top:14px">' + esc(p.titulo) + '</h1>'
       + '<div class="sub">' + esc(d.cliente || '') + (p.tl_numero ? ' · ' + T.num + ' ' + esc(p.tl_numero) : '') + (p.enviado_correo_at ? ' · ' + T.enviado + ' ' + fecha(p.enviado_correo_at) : '') + (d.vence ? ' · ' + T.valido + ' ' + fecha(d.vence) : '') + '</div>'
-      + (d.pdf_url ? '<a class="' + (soloPdf ? 'pdfbtn' : 'lnk') + '" href="' + esc(d.pdf_url) + '" target="_blank" rel="noopener">' + (firmado ? T.pdf_firmado : T.pdf) + '</a>' : '')
-      + (soloPdf && d.pdf_url ? '<iframe class="pdfv" src="' + esc(d.pdf_url) + '#view=FitH" title="PDF"></iframe>' : '') + '</div>';
+      + (pdfUrl ? '<a class="' + (soloPdf ? 'pdfbtn' : 'lnk') + '" href="' + esc(pdfUrl) + '" target="_blank" rel="noopener">' + (firmado ? T.pdf_firmado : T.pdf) + '</a>' : '')
+      + (soloPdf && pdfUrl ? '<iframe class="pdfv" src="' + esc(pdfUrl) + '#view=FitH" title="PDF"></iframe>' : '') + '</div>';
     if (firmado) h += '<div class="c"><div class="ok">' + rellena(T.ya, { n: esc(p.firma_nombre), f: fecha(p.firmado_at) }) + '</div></div>';
     if (!soloPdf || Number(d.totales && d.totales.base) > 0) h += '<div class="c">' + secciones.map(function (s) { return '<h2>' + esc(s.nombre) + '</h2>' + s.lineas.map(function (l) { return '<div class="l"><span class="p">' + eur(l.precio_venta) + '</span><div class="n">' + esc(l.descripcion) + '</div>' + (l.detalle_tecnico ? '<div class="d">' + esc(l.detalle_tecnico) + '</div>' : '') + '<div class="q">' + esc(l.cantidad) + ' ' + esc(l.unidad || 'ud') + ' × ' + eur(l.precio_tarifa) + (Number(l.dto_linea_pct) ? ' · −' + esc(l.dto_linea_pct) + ' %' : '') + '</div></div>'; }).join(''); }).join('')
       + '<div style="margin-top:14px">' + (d.totales.dto_global_pct ? '<div class="t"><span>' + T.suma + '</span><span>' + eur(d.totales.bruto) + '</span></div><div class="t"><span>' + T.dto + ' ' + esc(d.totales.dto_global_pct) + ' %</span><span>−' + eur(d.totales.bruto - d.totales.base) + '</span></div>' : '')

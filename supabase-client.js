@@ -3,7 +3,7 @@
 // Todos los módulos (supabase-auth.js, supabase-db.js) y la app importan
 // SIEMPRE este mismo cliente para compartir la sesión de Supabase Auth.
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/+esm';
 
 export const SUPABASE_URL = 'https://qmlweijcckzdtnebhbdj.supabase.co';
 
