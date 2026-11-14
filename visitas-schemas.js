@@ -20,10 +20,12 @@
 export const VERSION = 1;
 
 export const CATEGORIAS = [
-  { key: 'aerotermia',         nombre: 'Aerotermia',         corto: 'Aero'  },
-  { key: 'solar',              nombre: 'Paneles solares',    corto: 'Solar' },
-  { key: 'electricidad',       nombre: 'Electricidad',       corto: 'Elec'  },
-  { key: 'aire_acondicionado', nombre: 'Aire acondicionado', corto: 'A/A'   },
+  { key: 'obra',               nombre: 'Visita de obra - Instalaciones', corto: 'Obra' },
+  // Heredados: `oculto` = no se ofrecen en citas/visitas nuevas, pero las antiguas se siguen abriendo.
+  { key: 'aerotermia',         nombre: 'Aerotermia',         corto: 'Aero',  oculto: true },
+  { key: 'solar',              nombre: 'Paneles solares',    corto: 'Solar', oculto: true },
+  { key: 'electricidad',       nombre: 'Electricidad',       corto: 'Elec',  oculto: true },
+  { key: 'aire_acondicionado', nombre: 'Aire acondicionado', corto: 'A/A',   oculto: true },
 ];
 
 /* -----------------------------------------------------------------------------
@@ -571,7 +573,41 @@ const AIRE = {
   ],
 };
 
+/* ---------------------------------------------------------------------------
+ * VISITA DE OBRA - INSTALACIONES (tipo único de visita de BENSOL, esquema genérico)
+ * ------------------------------------------------------------------------- */
+const OBRA = {
+  categoria: 'obra',
+  fotos_minimas: [
+    { key: 'estado_actual', etiqueta: 'Estado actual' },
+    { key: 'detalle', etiqueta: 'Detalle de lo que se toca' },
+  ],
+  secciones: [
+    {
+      id: 'trabajos',
+      titulo: 'Trabajos',
+      campos: [
+        { key: 'descripcion_trabajos', etiqueta: 'Descripción de los trabajos', tipo: 'textarea',
+          obligatorio: true, placeholder: 'Qué quiere hacer el cliente' },
+        { key: 'estado_actual', etiqueta: 'Estado actual / observaciones', tipo: 'textarea' },
+        { key: 'instalacion', etiqueta: 'Instalaciones que afectan', tipo: 'multi',
+          opciones: ['electricidad', 'fontaneria', 'climatizacion', 'pci', 'domotica', 'otras'] },
+        { key: 'mediciones', etiqueta: 'Mediciones y notas', tipo: 'textarea' },
+      ],
+    },
+    {
+      id: 'logistica',
+      titulo: 'Accesos y plazos',
+      campos: [
+        { key: 'accesos_horarios', etiqueta: 'Accesos y horarios', tipo: 'textarea' },
+        { key: 'urgencia', etiqueta: 'Urgencia', tipo: 'opcion', opciones: ['urgente', 'normal', 'sin_prisa'] },
+      ],
+    },
+  ],
+};
+
 export const ESQUEMAS = {
+  obra: OBRA,
   aerotermia: AEROTERMIA,
   solar: SOLAR,
   electricidad: ELECTRICIDAD,
@@ -588,6 +624,8 @@ export const ETIQUETAS = {
   bueno: 'Bueno', regular: 'Regular', malo: 'Malo', a_sustituir: 'A sustituir',
   facil: 'Fácil', medio: 'Medio', dificil: 'Difícil',
   monofasico: 'Monofásico', trifasico: 'Trifásico',
+  fontaneria: 'Fontanería', climatizacion: 'Climatización', pci: 'PCI', domotica: 'Domótica', otras: 'Otras',
+  normal: 'Normal',
   fronius: 'Fronius', enphase: 'Enphase', byd: 'BYD', tesla: 'Tesla', midea: 'Midea',
   escalera: 'Escalera', andamio: 'Andamio', plataforma: 'Plataforma', grua: 'Camión grúa',
   automatico: 'Automático (full backup)', manual: 'Manual (conmutador)',

@@ -6924,7 +6924,7 @@ function irVisitaPaso() { scrollMemo.visitaNueva = 0; V.view = 'visitaNueva'; re
 
 A.nuevaVisita = () => {
   aparcarBorradorActivo();   // la que hubiera a medias se aparta, no bloquea
-  V.visitaDraft = { id: crypto.randomUUID(), fecha_visita: hoyISO(), categorias: [], _tocados: {}, _cliente: null, _catsGuardadas: [] };
+  V.visitaDraft = { id: crypto.randomUUID(), fecha_visita: hoyISO(), categorias: ['obra'], _tocados: {}, _cliente: null, _catsGuardadas: [] };
   V.visitaFichas = {}; V.visitaFotos = {}; V.visitaAdjuntos = [];
   V.visitaPaso = 1; V.visitaCat = null; V.visitaClientes = null; V.visitaBuscarTxt = '';
   guardarBorradorVisita();
@@ -7718,7 +7718,7 @@ function vVisitaNueva() {
 
   } else if (p === 3) {
     sub += ' · Puedes marcar varias';
-    cuerpo = `<div class="col g10">${vSchemas.CATEGORIAS.map((c) => {
+    cuerpo = `<div class="col g10">${vSchemas.CATEGORIAS.filter((c) => !c.oculto).map((c) => {
       const on = cats.includes(c.key);
       const esq = vSchemas.ESQUEMAS[c.key];
       const nf = fotosDeCat(c.key).length;
@@ -11959,7 +11959,7 @@ function agNuevaCita(clienteId, desdeAlta) {
   V.clienteVerId = clienteId;
   V.citaDraft = {
     id: null, clienteId, desdeAlta: !!desdeAlta, dia: agSumaDias(agHoy(), 1), horaMin: 600, duracion: 60,
-    categorias: [], empleadoId: miEmpId() || null, direccion: c.direccion || '', poblacion: c.poblacion || '', nota: '',
+    categorias: ['obra'], empleadoId: miEmpId() || null, direccion: c.direccion || '', poblacion: c.poblacion || '', nota: '',
   };
   V.agConfirmar = null;
   V.view = 'citaNueva'; scrollMemo.citaNueva = 0; render();
@@ -12193,7 +12193,7 @@ function agEmpezarVisitaCliente(clienteId) {
     aparcarBorradorActivo();   // la de otro cliente se aparta, no bloquea
   }
   V.visitaDraft = {
-    id: crypto.randomUUID(), fecha_visita: hoyISO(), categorias: [], _catsGuardadas: [], _tocados: {},
+    id: crypto.randomUUID(), fecha_visita: hoyISO(), categorias: ['obra'], _catsGuardadas: [], _tocados: {},
     _cliente: { id: c.id, nombre: c.nombre || '', telefono: c.telefono || '', tl_id: c.tl_id || null, tl_tipo: c.tl_tipo || 'contact', nuevo: false },
     direccion: c.direccion || '', poblacion: c.poblacion || '',
   };
@@ -12633,7 +12633,7 @@ function vCitaNueva() {
     <div class="campo"><div class="lbl">Duración</div>
       <div class="wrap">${AG_DURACIONES.map((m) => `<span class="chip ${d.duracion === m ? 'sel' : ''}" data-a="ag_citaDur" data-m="${m}" style="cursor:pointer">${agDur(m)}</span>`).join('')}</div></div>` : ''}
     <div class="campo"><div class="lbl">Qué quiere presupuestar</div>
-      <div class="wrap">${vSchemas.CATEGORIAS.map((k) => `<span class="chip ${d.categorias.includes(k.key) ? 'sel' : ''}" data-a="ag_citaCat" data-c="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div></div>
+      <div class="wrap">${vSchemas.CATEGORIAS.filter((k) => !k.oculto).map((k) => `<span class="chip ${d.categorias.includes(k.key) ? 'sel' : ''}" data-a="ag_citaCat" data-c="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div></div>
     <div class="campo"><div class="lbl">Quién va</div>
       <div class="wrap">${presu.length ? presu.map((u) => `<span class="chip ${d.empleadoId === u.empId ? 'sel' : ''}" data-a="ag_citaQuien" data-id="${u.empId}" style="cursor:pointer">${esc(u.nombre)}</span>`).join('') : '<span class="tiny">No hay nadie con rol presupuestos.</span>'}</div></div>
     <div class="campo"><div class="lbl">Dirección de la visita</div>
