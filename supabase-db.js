@@ -99,6 +99,60 @@ export async function guardarCosteEmpleado(fila) {
   return unwrap(await supabase.from('empleado_costes').insert(fila).select().single());
 }
 
+/* ---------------- catálogo de partidas / bases de precios (sql/etapa106) ----------------
+ * Lectura: admin, jefe y presupuestos. Escritura (importar, borrar): solo admin (lo impone la RLS). */
+export async function listarBasesPrecios() {
+  const bases = unwrap(await supabase.from('partida_bases').select('*').order('importada_at', { ascending: false })) || [];
+  for (const b of bases) {
+    const r = await supabase.from('partida_conceptos').select('codigo', { count: 'exact', head: true }).eq('base_id', b.id).eq('tipo', 'partida');
+    b.n_partidas = r.error ? null : r.count;
+  }
+  return bases;
+}
+export async function listarGruposPartidas() {
+  return unwrap(await supabase.from('partida_grupos').select('*').order('orden')) || [];
+}
+export async function buscarPartidas({ q = '', grupo = null, capitulo = null, base = null, limite = 40, simples = false } = {}) {
+  return unwrap(await supabase.rpc('buscar_partidas', { p_q: q, p_grupo: grupo, p_capitulo: capitulo, p_base: base, p_limite: limite, p_incluir_simples: simples })) || [];
+}
+// Descompuesto de una partida con resumen, unidad y precio de cada componente.
+export async function descompuestoPartida(baseId, codigo) {
+  return unwrap(await supabase.rpc('descompuesto_partida', { p_base: baseId, p_codigo: codigo })) || [];
+}
+// Ficha completa de una partida (descripción, traducciones, capítulo).
+export async function conceptoPartida(baseId, codigo) {
+  return unwrap(await supabase.from('partida_conceptos').select('*').eq('base_id', baseId).eq('codigo', codigo).maybeSingle());
+}
+// Importación idempotente: upsert de la base por código y de sus filas por (base, código). Los descompuestos
+// de la base se borran y se vuelven a insertar. Lotes de ~500 filas; avance(hechas, total, texto) para el progreso.
+export async function importarBasePrecios(meta, filas, avance, lote = 500) {
+  const base = unwrap(await supabase.from('partida_bases')
+    .upsert({ codigo: meta.codigo, nombre: meta.nombre, edicion: meta.edicion || null, anio: meta.anio || null, importada_at: new Date().toISOString(), n_conceptos: filas.conceptos.length }, { onConflict: 'codigo' })
+    .select().single());
+  const total = filas.capitulos.length + filas.conceptos.length + filas.descompuestos.length;
+  let hechas = 0;
+  const poner = (f) => f.map((x) => ({ ...x, base_id: base.id }));
+  const subir = async (tabla, rows, conflicto, texto) => {
+    for (let i = 0; i < rows.length; i += lote) {
+      const trozo = poner(rows.slice(i, i + lote));
+      unwrap(await supabase.from(tabla).upsert(trozo, { onConflict: conflicto }));
+      hechas += trozo.length;
+      if (avance) avance(hechas, total, texto);
+    }
+  };
+  unwrap(await supabase.from('partida_descompuestos').delete().eq('base_id', base.id));
+  await subir('partida_capitulos', filas.capitulos, 'base_id,codigo', 'Capítulos');
+  await subir('partida_conceptos', filas.conceptos, 'base_id,codigo', 'Conceptos');
+  await subir('partida_descompuestos', filas.descompuestos, 'base_id,padre_codigo,orden', 'Descompuestos');
+  return base;
+}
+export async function borrarBasePrecios(baseId) {
+  unwrap(await supabase.from('partida_descompuestos').delete().eq('base_id', baseId));
+  unwrap(await supabase.from('partida_conceptos').delete().eq('base_id', baseId));
+  unwrap(await supabase.from('partida_capitulos').delete().eq('base_id', baseId));
+  unwrap(await supabase.from('partida_bases').delete().eq('id', baseId));
+}
+
 /* ---------------- planificación diaria (sql/etapa60) ----------------
  * Quién va cada día a qué obra. La escribe todo comercial; el operario solo
  * lee lo suyo (lo filtra la RLS). */
@@ -835,4 +889,5 @@ export default {
   listarFestivos, ponerFestivo, quitarFestivo,
   listarIncidencias, crearIncidencia,
   presenciaDiaria, listarImputaciones, proponerImputaciones, guardarImputaciones, borrarImputacion,
+  listarBasesPrecios, listarGruposPartidas, buscarPartidas, descompuestoPartida, conceptoPartida, importarBasePrecios, borrarBasePrecios,
 };

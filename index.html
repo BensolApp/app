@@ -4552,10 +4552,240 @@ A.instalar = async () => {
   V.sheet = { tipo: 'instalar' }; render();
 };
 
+/* ---------- Bases de precios y buscador de partidas (sql/etapa106) ----------
+ * Admin: importa BC3 (se lee en el navegador) y borra bases. Admin, jefe y presupuestos: buscador de consulta.
+ * Reutilizable (etapa siguiente): nuevoBuscadorPartidas(), partidasBuscadorHTML(est), A.partidasBuscar(est),
+ * A.partidasAbrir(est, baseId, codigo) y, en supabase-db.js, buscarPartidas / descompuestoPartida / conceptoPartida. */
+const nfPrecio = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nfCant = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 4 });
+const fmtPrecio = (n) => (n == null || n === '' ? '—' : nfPrecio.format(Number(n)) + ' €');
+const puedeBuscarPartidas = () => esComercial();
+let BP_PARSED = null; // resultado del análisis del BC3 (pesado: no va en V)
+let BP_INP = null;
+const nuevoBuscadorPartidas = (id) => ({ id: id || 'bp', q: '', grupo: '', res: null, cargando: false, error: null, sel: null, det: null, seq: 0, timer: null });
+Object.assign(V, { bp: { bases: null, grupos: null, error: null, imp: null, borrar: null, busq: nuevoBuscadorPartidas('bp') } });
+
+A.abrirBasesPrecios = async () => {
+  if (!puedeBuscarPartidas()) return;
+  V.view = 'basesPrecios'; V.bp.error = null; render();
+  try {
+    V.bp.grupos = await Bensol.db.listarGruposPartidas();
+    V.bp.bases = await Bensol.db.listarBasesPrecios();
+  } catch (e) { V.bp.error = /relation|does not exist|schema cache/i.test(msgError(e)) ? 'Falta ejecutar sql/etapa106 en Supabase.' : msgError(e); }
+  render();
+};
+
+/* --- buscador reutilizable --- */
+A.partidasBuscar = async (est, opts) => {
+  const q = String(est.q || '').trim();
+  if (!q && !est.grupo) { est.res = null; est.error = null; est.cargando = false; return partidasPintar(est); }
+  const n = ++est.seq; est.cargando = true; est.error = null; partidasPintar(est);
+  try {
+    const r = await Bensol.db.buscarPartidas({ q, grupo: est.grupo || null, base: est.base || null, limite: 40, ...(opts || {}) });
+    if (n !== est.seq) return;
+    est.res = r;
+  } catch (e) { if (n !== est.seq) return; est.res = []; est.error = msgError(e); }
+  est.cargando = false; partidasPintar(est);
+};
+A.partidasAbrir = async (est, baseId, codigo) => {
+  const k = baseId + '|' + codigo;
+  if (est.sel === k) { est.sel = null; est.det = null; return partidasPintar(est); }
+  est.sel = k; est.det = { cargando: true }; partidasPintar(est);
+  try {
+    const [c, l] = await Promise.all([Bensol.db.conceptoPartida(baseId, codigo), Bensol.db.descompuestoPartida(baseId, codigo)]);
+    if (est.sel === k) est.det = { c, l };
+  } catch (e) { if (est.sel === k) est.det = { error: msgError(e) }; }
+  partidasPintar(est);
+};
+function partidasPintar(est) { const box = document.getElementById(est.id + '-res'); if (box) box.innerHTML = partidasResultadosHTML(est); }
+function partidasDetalleHTML(est) {
+  const d = est.det;
+  if (!d || d.cargando) return '<div class="sub" style="padding:10px 0">Cargando…</div>';
+  if (d.error) return `<div class="sub" style="padding:10px 0">No se pudo cargar: ${esc(d.error)}</div>`;
+  const c = d.c || {};
+  const filas = (d.l || []).map((x) => `<tr>
+      <td style="padding:5px 6px 5px 0;font:400 11px var(--mono);vertical-align:top">${esc(x.hijo_codigo)}</td>
+      <td style="padding:5px 6px;font:400 12px/1.3 var(--sans)">${esc(x.resumen || (x.tipo === 'porcentaje' ? 'Medios auxiliares' : '—'))}</td>
+      <td style="padding:5px 6px;font:400 12px var(--sans);white-space:nowrap">${esc(x.unidad || '')}</td>
+      <td style="padding:5px 6px;font:400 12px var(--sans);text-align:right;white-space:nowrap">${esc(nfCant.format(Number(x.cantidad)))}</td>
+      <td style="padding:5px 6px;font:400 12px var(--sans);text-align:right;white-space:nowrap">${x.tipo === 'porcentaje' ? '—' : esc(nfPrecio.format(Number(x.precio || 0)))}</td>
+      <td style="padding:5px 0 5px 6px;font:600 12px var(--sans);text-align:right;white-space:nowrap">${esc(nfPrecio.format(Number(x.importe || 0)))}</td></tr>`).join('');
+  return `<div style="padding:8px 0 4px">
+    ${c.descripcion ? `<div style="font:400 13px/1.45 var(--sans);white-space:pre-line;margin-bottom:10px">${esc(c.descripcion)}</div>` : ''}
+    ${filas ? `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+      <thead><tr>${['Código', 'Concepto', 'Ud', 'Cantidad', 'Precio', 'Importe'].map((h, i) => `<th class="lbl" style="text-align:${i > 2 ? 'right' : 'left'};padding:4px 6px 6px 0;font-weight:400">${h}</th>`).join('')}</tr></thead>
+      <tbody>${filas}</tbody></table></div>` : '<div class="sub">Sin descompuesto.</div>'}
+  </div>`;
+}
+function partidasResultadosHTML(est) {
+  if (est.error) return `<div class="sub" style="padding:8px 0">${/function|does not exist|schema cache/i.test(est.error) ? 'Falta ejecutar sql/etapa106 en Supabase.' : 'No se pudo buscar: ' + esc(est.error)}</div>`;
+  if (est.res == null) return est.cargando ? '<div class="sub" style="padding:8px 0">Buscando…</div>' : '<div class="sub" style="padding:8px 0">Escribe lo que buscas (nombre o código) o elige un grupo.</div>';
+  if (!est.res.length) return est.cargando ? '<div class="sub" style="padding:8px 0">Buscando…</div>' : '<div class="sub" style="padding:8px 0">Sin resultados.</div>';
+  return (est.cargando ? '<div class="tiny" style="padding:4px 0">Buscando…</div>' : '') + est.res.map((r, i) => {
+    const abierto = est.sel === r.base_id + '|' + r.codigo;
+    return `<div style="${i ? 'border-top:1px solid var(--l1);' : ''}padding:10px 0">
+      <div class="row" data-a="partidaAbrir" data-id="${esc(est.id)}" data-b="${esc(r.base_id)}" data-c="${esc(r.codigo)}" style="cursor:pointer;align-items:flex-start">
+        <div class="grow"><div class="tiny">${esc(r.codigo)}${r.capitulo_nombre ? ' · ' + esc(r.capitulo_nombre) : ''}</div>
+          <div style="font:500 14px/1.3 var(--sans);margin-top:3px">${esc(r.resumen)}</div></div>
+        <div style="text-align:right;flex:none"><div style="font:600 14px var(--sans)">${esc(fmtPrecio(r.precio))}</div><div class="tiny">/ ${esc(r.unidad || 'ud')}</div></div>
+      </div>${abierto ? partidasDetalleHTML(est) : ''}</div>`;
+  }).join('');
+}
+function partidasBuscadorHTML(est) {
+  const grupos = V.bp.grupos || [];
+  const top = grupos.filter((g) => !g.padre);
+  const sel = grupos.find((g) => g.clave === est.grupo);
+  const padreSel = sel ? (sel.padre || sel.clave) : '';
+  const subs = padreSel ? grupos.filter((g) => g.padre === padreSel) : [];
+  const chip = (clave, nombre, on) => `<span class="chip${on ? ' on' : ''}" data-a="partidaGrupo" data-id="${esc(est.id)}" data-g="${esc(clave)}">${esc(nombre)}</span>`;
+  return `<input class="inp" data-f="partidaBuscar" data-id="${esc(est.id)}" value="${esc(est.q)}" placeholder="Buscar partida (p. ej. demolición, tabique, 24 V…)" autocomplete="off" autocapitalize="off" style="margin-top:10px">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">${chip('', 'Todos', !est.grupo)}${top.map((g) => chip(g.clave, g.nombre, padreSel === g.clave && (!sel || !sel.padre))).join('')}</div>
+    ${subs.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${subs.map((g) => chip(g.clave, g.nombre, est.grupo === g.clave)).join('')}</div>` : ''}
+    <div id="${esc(est.id)}-res" style="margin-top:8px">${partidasResultadosHTML(est)}</div>`;
+}
+
+/* --- importador (solo admin) --- */
+const BP_IDIOMAS = [['es', 'Castellano (principal)'], ['ca', 'Catalán (opcional)'], ['en', 'Inglés (opcional)'], ['de', 'Alemán (opcional)']];
+const bpCodigo = (nombre, anio) => (String(nombre || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'BASE') + (anio ? '-' + anio : '');
+A.bpNuevaImportacion = () => { if (!esAdmin()) return; BP_PARSED = null; V.bp.imp = { fase: 'form', nombre: '', anio: String(new Date().getFullYear()), archivos: {}, error: null, progreso: '', pct: 0, resumen: null }; render(); };
+A.bpCancelarImportacion = () => { BP_PARSED = null; V.bp.imp = null; render(); };
+A.bpElegirArchivo = (idioma) => {
+  if (!esAdmin() || !V.bp.imp) return;
+  if (BP_INP) { try { BP_INP.remove(); } catch (e) {} }
+  const inp = document.createElement('input'); inp.type = 'file';
+  inp.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;width:1px;height:1px'; // en el DOM (iPhone)
+  document.body.appendChild(inp); BP_INP = inp;
+  inp.onchange = async () => {
+    const f = inp.files && inp.files[0]; inp.remove(); BP_INP = null;
+    if (!f || !V.bp.imp) return;
+    try { V.bp.imp.archivos[idioma] = { name: f.name, buf: await f.arrayBuffer() }; V.bp.imp.error = null; }
+    catch (e) { V.bp.imp.error = 'No se pudo leer el archivo: ' + msgError(e); }
+    render();
+  };
+  inp.click();
+};
+A.bpQuitarArchivo = (idioma) => { if (V.bp.imp) { delete V.bp.imp.archivos[idioma]; render(); } };
+A.bpAnalizar = async () => {
+  const im = V.bp.imp; if (!esAdmin() || !im) return;
+  if (!String(im.nombre).trim()) { im.error = 'Pon un nombre a la base.'; return render(); }
+  if (!im.archivos.es) { im.error = 'Falta el archivo principal en castellano.'; return render(); }
+  im.error = null; im.fase = 'analizando'; render();
+  try {
+    const M = await import('./bc3-import.js');
+    const base = M.parseBC3(im.archivos.es.buf);
+    if (!base.capitulos.length || !base.conceptos.length) throw new Error('El archivo no parece un BC3 válido (sin capítulos o conceptos).');
+    const idiomas = [];
+    for (const [k] of BP_IDIOMAS) {
+      if (k === 'es' || !im.archivos[k]) continue;
+      const r = M.fusionarIdioma(base, M.parseBC3(im.archivos[k].buf), k);
+      idiomas.push({ k, fusionados: r.fusionados, total: r.total, pct: r.pct });
+    }
+    M.asignarGrupos(base);
+    BP_PARSED = base;
+    im.resumen = { ...base.info.conteos, avisos: base.info.avisos, idiomas, auxiliares: base.conceptos.filter((c) => c.tipo === 'auxiliar').length, nombreArchivo: base.info.nombre };
+    im.codigo = bpCodigo(im.nombre, im.anio);
+    im.fase = 'resumen';
+  } catch (e) { im.fase = 'form'; im.error = 'No se pudo analizar: ' + msgError(e); }
+  render();
+};
+A.bpSubir = async () => {
+  const im = V.bp.imp; if (!esAdmin() || !im || !BP_PARSED) return;
+  im.fase = 'subiendo'; im.error = null; im.pct = 0; im.progreso = 'Preparando…'; render();
+  try {
+    const M = await import('./bc3-import.js');
+    const filas = M.filasParaBD(BP_PARSED, null);
+    const avance = (h, t, txt) => {
+      im.pct = Math.round((h / t) * 100); im.progreso = txt + ' · ' + h.toLocaleString('es-ES') + ' de ' + t.toLocaleString('es-ES');
+      const b = document.getElementById('bp-prog'); if (b) { b.querySelector('i').style.width = im.pct + '%'; b.nextElementSibling.textContent = im.progreso; }
+    };
+    await Bensol.db.importarBasePrecios({ codigo: im.codigo || bpCodigo(im.nombre, im.anio), nombre: String(im.nombre).trim(), edicion: BP_PARSED.info.nombre || '', anio: parseInt(im.anio, 10) || null }, filas, avance);
+    im.fase = 'ok';
+    V.bp.bases = await Bensol.db.listarBasesPrecios();
+    toast('Base importada.');
+  } catch (e) { im.fase = 'error'; im.error = msgError(e); }
+  render();
+};
+A.bpPedirBorrar = (id) => { if (!esAdmin()) return; const b = (V.bp.bases || []).find((x) => x.id === id); if (b) { V.bp.borrar = { id, nombre: b.nombre, busy: false, error: null }; render(); } };
+A.bpCancelarBorrar = () => { V.bp.borrar = null; render(); };
+A.bpBorrar = async () => {
+  const bo = V.bp.borrar; if (!esAdmin() || !bo || bo.busy) return;
+  bo.busy = true; bo.error = null; render();
+  try {
+    await Bensol.db.borrarBasePrecios(bo.id);
+    V.bp.borrar = null; V.bp.bases = await Bensol.db.listarBasesPrecios();
+    const b = V.bp.busq; b.res = null; b.sel = null; b.det = null;
+    toast('Base eliminada.');
+  } catch (e) { bo.busy = false; bo.error = msgError(e); }
+  render();
+};
+function bpImportadorHTML() {
+  const im = V.bp.imp;
+  if (!im) return `<div class="card row" data-a="bpNuevaImportacion" style="margin-top:12px;cursor:pointer"><div class="grow"><div style="font:600 15px var(--sans)">Importar BC3</div><div class="sub" style="font-size:12px;margin-top:4px">Carga o actualiza una base de precios desde sus archivos BC3.</div></div><div style="font:400 20px/1 var(--sans);color:var(--t3)">›</div></div>`;
+  const err = im.error ? `<div class="sub" style="color:var(--rojo);margin-top:10px">${esc(im.error)}</div>` : '';
+  if (im.fase === 'form' || im.fase === 'analizando') {
+    return `<div class="card" style="margin-top:12px">
+      <div style="font:600 15px var(--sans)">Importar BC3</div>
+      <input class="inp" data-f="bpNombre" value="${esc(im.nombre)}" placeholder="Nombre de la base (p. ej. Precios Mallorca 2026)" style="margin-top:10px">
+      <input class="inp" data-f="bpAnio" value="${esc(im.anio)}" inputmode="numeric" placeholder="Año" style="margin-top:8px">
+      ${BP_IDIOMAS.map(([k, n]) => { const a = im.archivos[k]; return `<div class="row g8" style="margin-top:10px">
+        <div class="grow"><div class="lbl">${esc(n)}</div><div style="font:400 13px var(--sans);margin-top:4px;word-break:break-all">${a ? esc(a.name) : '—'}</div></div>
+        ${a ? `<span class="chip" data-a="bpQuitarArchivo" data-k="${k}">Quitar</span>` : ''}
+        <span class="chip" data-a="bpElegirArchivo" data-k="${k}">${a ? 'Cambiar' : 'Elegir'}</span></div>`; }).join('')}
+      ${err}
+      <div class="row g8" style="margin-top:14px"><div class="btn btn-gris grow" data-a="bpCancelarImportacion">Cancelar</div>
+        <div class="btn grow" data-a="bpAnalizar"${im.fase === 'analizando' ? ' disabled' : ''}>${im.fase === 'analizando' ? 'Analizando…' : 'Analizar'}</div></div></div>`;
+  }
+  if (im.fase === 'resumen') {
+    const r = im.resumen; const existe = (V.bp.bases || []).find((b) => b.codigo === im.codigo);
+    return `<div class="card" style="margin-top:12px">
+      <div style="font:600 15px var(--sans)">Resumen previo</div>
+      <div class="sub" style="margin-top:8px">${esc(im.nombre)} · ${esc(im.anio)} · código ${esc(im.codigo)}</div>
+      <div style="font:400 14px/1.6 var(--sans);margin-top:8px">
+        ${r.capitulos.toLocaleString('es-ES')} capítulos (${r.primerNivel} de primer nivel)<br>
+        ${r.partidas.toLocaleString('es-ES')} partidas<br>
+        ${r.simples.toLocaleString('es-ES')} conceptos simples (materiales, mano de obra, maquinaria, porcentajes${r.auxiliares ? ', ' + r.auxiliares + ' auxiliares' : ''})<br>
+        ${r.descompuestos.toLocaleString('es-ES')} líneas de descompuesto
+        ${r.idiomas.map((x) => `<br>${esc(x.k.toUpperCase())}: ${(x.pct * 100).toFixed(1).replace('.', ',')} % de los códigos traducidos`).join('')}</div>
+      ${r.avisos.length ? `<div class="sub" style="margin-top:8px">${r.avisos.map(esc).join('<br>')}</div>` : ''}
+      ${existe ? '<div class="sub" style="margin-top:8px">Esta base ya existe: se actualizará (se reescriben sus descompuestos).</div>' : ''}
+      ${err}
+      <div class="row g8" style="margin-top:14px"><div class="btn btn-gris grow" data-a="bpCancelarImportacion">Cancelar</div><div class="btn btn-verde grow" data-a="bpSubir">Importar</div></div></div>`;
+  }
+  if (im.fase === 'subiendo') return `<div class="card" style="margin-top:12px"><div style="font:600 15px var(--sans)">Importando…</div><div class="prog" id="bp-prog"><i style="width:${im.pct}%"></i></div><div class="sub" style="margin-top:8px">${esc(im.progreso)}</div><div class="tiny" style="margin-top:8px">No cierres la pantalla hasta que termine.</div></div>`;
+  if (im.fase === 'error') return `<div class="card" style="margin-top:12px"><div style="font:600 15px var(--sans)">La importación se ha interrumpido</div><div class="sub" style="color:var(--rojo);margin-top:8px">${esc(im.error)}</div><div class="sub" style="margin-top:8px">Se puede reintentar: no duplica nada.</div><div class="row g8" style="margin-top:14px"><div class="btn btn-gris grow" data-a="bpCancelarImportacion">Cerrar</div><div class="btn grow" data-a="bpSubir">Reintentar</div></div></div>`;
+  return `<div class="card" style="margin-top:12px"><div style="font:600 15px var(--sans)">Importación terminada</div><div class="sub" style="margin-top:8px">La base ya se puede consultar en el buscador.</div><div class="btn grow" data-a="bpCancelarImportacion" style="margin-top:14px">Cerrar</div></div>`;
+}
+function vBasesPrecios() {
+  const bp = V.bp; const admin = esAdmin();
+  const bases = bp.bases;
+  return `<div class="hdr">
+    <div class="volver" data-a="ir" data-v="ajustes">‹ ${esAdmin() ? 'Ajustes' : 'Perfil'}</div>
+    <div class="h1" style="margin-top:6px">Bases de precios</div>
+    <div class="sub" style="margin-top:6px">Catálogo de partidas para presupuestar. ${admin ? 'Aquí se importan las bases BC3 y se consultan.' : 'Consulta de partidas y precios.'}</div>
+  </div>
+  <div class="scroll pad pb-nav">
+    ${bp.error ? `<div class="card" style="margin-bottom:12px"><div class="sub">${esc(bp.error)}</div></div>` : ''}
+    <div class="card">
+      <div style="font:600 15px var(--sans)">Bases cargadas</div>
+      ${bases == null ? '<div class="sub" style="margin-top:8px">Cargando…</div>' : !bases.length ? '<div class="sub" style="margin-top:8px">Todavía no hay ninguna base cargada.</div>' : bases.map((b, i) => `<div class="row g8" style="padding:10px 0;${i ? 'border-top:1px solid var(--l1)' : ''}">
+        <div class="grow"><div style="font:500 14px/1.3 var(--sans)">${esc(b.nombre)}</div><div class="tiny" style="margin-top:3px">${esc(b.anio || '')} · ${b.n_partidas == null ? '—' : Number(b.n_partidas).toLocaleString('es-ES')} partidas · ${esc(new Date(b.importada_at).toLocaleDateString('es-ES'))}</div></div>
+        ${admin ? `<span class="chip" data-a="bpPedirBorrar" data-id="${esc(b.id)}">Eliminar</span>` : ''}</div>`).join('')}
+      ${bp.borrar ? `<div style="margin-top:10px;padding-top:12px;border-top:1px solid var(--l1)"><div style="font:500 14px/1.4 var(--sans)">¿Eliminar «${esc(bp.borrar.nombre)}» y todas sus partidas? No se puede deshacer.</div>
+        ${bp.borrar.error ? `<div class="sub" style="color:var(--rojo);margin-top:6px">${esc(bp.borrar.error)}</div>` : ''}
+        <div class="row g8" style="margin-top:10px"><div class="btn btn-gris grow" data-a="bpCancelarBorrar">Cancelar</div><div class="btn btn-rojo grow" data-a="bpBorrar"${bp.borrar.busy ? ' disabled' : ''}>${bp.borrar.busy ? 'Eliminando…' : 'Eliminar'}</div></div></div>` : ''}
+    </div>
+    ${admin ? bpImportadorHTML() : ''}
+    <div class="card" style="margin-top:12px">
+      <div style="font:600 15px var(--sans)">Buscador de partidas</div>
+      ${partidasBuscadorHTML(bp.busq)}
+    </div>
+  </div>`;
+}
+
 /* ---------- render ---------- */
 function render() {
   // presupuestos entra directo a sus visitas: ninguna pantalla de fichar, obras ni partes.
-  if (V.user && esPresupuestos() && !VISITA_VISTAS.includes(V.view) && !(!esColaborador() && ['legalizaciones', 'legalizacion', 'obras', 'obra', 'alta', 'costesPersonal', 'planificacion'].includes(V.view))) {
+  if (V.user && esPresupuestos() && !VISITA_VISTAS.includes(V.view) && !(!esColaborador() && ['legalizaciones', 'legalizacion', 'obras', 'obra', 'alta', 'costesPersonal', 'planificacion', 'basesPrecios'].includes(V.view))) {
     V.view = 'agenda';
     if (!V.agenda.cargado) A.cargarAgenda();
   }
@@ -4585,6 +4815,7 @@ function render() {
   else if (v === 'legalizaciones' && esComercial()) html = vLegalizaciones();
   else if (v === 'costesPersonal' && veCostes()) html = vCostesPersonal();
   else if (v === 'fasesPlantillas' && esAdmin()) html = vFasesPlantillas();
+  else if (v === 'basesPrecios' && puedeBuscarPartidas()) html = vBasesPrecios();
   else if (v === 'planificacion' && planifica()) html = vPlanificacion();
   else if (v === 'legalizacion' && esComercial()) html = vLegalizacion();
   else if (v === 'presuNuevo' && verMotor()) html = vPresuNuevo();
@@ -4602,7 +4833,7 @@ function render() {
   else if (v === 'clienteVer' && verAgenda()) html = vClienteVer();
   else if (v === 'citaNueva' && puedeCitar()) html = vCitaNueva();
   else if (v === 'citaVer' && verAgenda()) html = vCitaVer();
-  if (V.user && ['hoy', 'obras', 'obra', 'partes', 'horas', 'imputar', 'empleados', 'ajustes', 'presupuestos', 'presupuestoVer', 'visitas', 'visita', 'agenda', 'clientes', 'clienteVer', 'revisarImp', 'errores', 'legalizaciones', 'legalizacion', 'costesPersonal', 'planificacion', 'fasesPlantillas'].includes(v)) html += nav(v);
+  if (V.user && ['hoy', 'obras', 'obra', 'partes', 'horas', 'imputar', 'empleados', 'ajustes', 'presupuestos', 'presupuestoVer', 'visitas', 'visita', 'agenda', 'clientes', 'clienteVer', 'revisarImp', 'errores', 'legalizaciones', 'legalizacion', 'costesPersonal', 'planificacion', 'fasesPlantillas', 'basesPrecios'].includes(v)) html += nav(v);
   if (!navigator.onLine && V.user) html = '<div class="offline">Sin conexión — todo se guarda en el móvil</div>' + html;
   // Red de seguridad: si un sheet revienta al pintarse (p. ej. depende de
   // datos que cambiaron justo antes, como el usuario tras salir), que se
@@ -6323,6 +6554,11 @@ function vAjustes() {
     ${esAdmin() ? `<div class="card row" data-a="abrirPlantillas" style="margin-top:14px;cursor:pointer">
       <div class="grow"><div style="font:600 15px var(--sans)">Fases por categoría</div>
       <div class="sub" style="font-size:12px;margin-top:4px">Las fases que lleva cada obra nueva: preparación, montaje, puesta en marcha, legalización, cobro.</div></div>
+      <div style="font:400 20px/1 var(--sans);color:var(--t3)">›</div>
+    </div>` : ''}
+    ${esComercial() ? `<div class="card row" data-a="abrirBasesPrecios" style="margin-top:14px;cursor:pointer">
+      <div class="grow"><div style="font:600 15px var(--sans)">Bases de precios</div>
+      <div class="sub" style="font-size:12px;margin-top:4px">Catálogo de partidas (BC3) y buscador de precios para presupuestar.</div></div>
       <div style="font:400 20px/1 var(--sans);color:var(--t3)">›</div>
     </div>` : ''}
     ${veCostes() ? `<div class="card row" data-a="abrirCostes" style="margin-top:14px;cursor:pointer">
@@ -13000,7 +13236,7 @@ function nav(v) {
     || (id === 'obras' && v === 'obra')
     || (id === 'horas' && ['imputar', 'revisarImp', 'resumenImp'].includes(v))
     || (id === 'ajustes' && !esPresupuestos() && ['errores', 'legalizaciones', 'legalizacion'].includes(v))
-    || (id === 'ajustes' && ['costesPersonal', 'fasesPlantillas'].includes(v))
+    || (id === 'ajustes' && ['costesPersonal', 'fasesPlantillas', 'basesPrecios'].includes(v))
     || (id === 'obras' && ['alta', 'planificacion'].includes(v))
     || (id === 'legalizaciones' && v === 'legalizacion')
     || (id === 'empleados' && (v === 'empleado' || v === 'planilla'))
@@ -14481,6 +14717,18 @@ document.addEventListener('click', (e) => {
   if (a === 'confirmarBorrarParte') return A.confirmarBorrarParte();
   if (a === 'borrarObra') return A.borrarObra(d.id);
   if (a === 'abrirCostes') return A.abrirCostes();
+  if (a === 'abrirBasesPrecios') return A.abrirBasesPrecios();
+  if (a === 'bpNuevaImportacion') return A.bpNuevaImportacion();
+  if (a === 'bpCancelarImportacion') return A.bpCancelarImportacion();
+  if (a === 'bpElegirArchivo') return A.bpElegirArchivo(d.k);
+  if (a === 'bpQuitarArchivo') return A.bpQuitarArchivo(d.k);
+  if (a === 'bpAnalizar') return A.bpAnalizar();
+  if (a === 'bpSubir') return A.bpSubir();
+  if (a === 'bpPedirBorrar') return A.bpPedirBorrar(d.id);
+  if (a === 'bpCancelarBorrar') return A.bpCancelarBorrar();
+  if (a === 'bpBorrar') return A.bpBorrar();
+  if (a === 'partidaAbrir') { if (V.bp.busq.id === d.id) A.partidasAbrir(V.bp.busq, d.b, d.c); return; }
+  if (a === 'partidaGrupo') { if (V.bp.busq.id === d.id) { const est = V.bp.busq; est.grupo = d.g || ''; est.sel = null; est.det = null; render(); A.partidasBuscar(est); } return; }
   if (a === 'abrirPlanificacion') return A.abrirPlanificacion();
   if (a === 'planSemana') return A.planSemana(Number(d.d));
   if (a === 'planHoy') return A.planHoy();
@@ -14771,6 +15019,9 @@ document.addEventListener('input', (e) => {
   if (f === 'planHora') { if (V.sheet) V.sheet.hora = t.value; return; }
   if (f === 'planNota') { if (V.sheet) V.sheet.nota = t.value; return; }
   if (f === 'costeCat') { if (V.sheet) V.sheet.cat = t.value; return; }
+  if (f === 'bpNombre') { if (V.bp.imp) V.bp.imp.nombre = t.value; return; }
+  if (f === 'bpAnio') { if (V.bp.imp) V.bp.imp.anio = t.value; return; }
+  if (f === 'partidaBuscar') { const est = V.bp.busq; est.q = t.value; clearTimeout(est.timer); est.timer = setTimeout(() => A.partidasBuscar(est), 300); return; }
   if (f === 'costesBuscar') { V.costesBuscar = t.value; const box = document.getElementById('costes-lista'); if (box) box.innerHTML = costesListaHTML(); return; }
   if (f === 'costeValor') { if (V.sheet) V.sheet.coste = t.value; return; }
   if (f === 'costeDesde') { if (V.sheet) V.sheet.desde = t.value; return; }

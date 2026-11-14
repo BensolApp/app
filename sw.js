@@ -1,5 +1,5 @@
-const CACHE = 'bensol-v12';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './supabase-client.js', './supabase-auth.js', './supabase-db.js', './visitas-schemas.js', './visitas-form.js', './visitas-db.js', './presu-idiomas.js', './icon-192.png?v=5', './icon-512.png?v=5', './icon-maskable.png?v=5', './logo-trans.png?v=5', './logo-blanco.png?v=5', './logo-s-blanco.png?v=5', './fondo-login.jpg', './icon-180.png?v=5', './vendor/html2canvas.min.js', './vendor/jspdf.umd.min.js', './vendor/pdf-lib.min.js'];
+const CACHE = 'bensol-v13';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './supabase-client.js', './supabase-auth.js', './supabase-db.js', './visitas-schemas.js', './visitas-form.js', './visitas-db.js', './presu-idiomas.js', './bc3-import.js', './icon-192.png?v=5', './icon-512.png?v=5', './icon-maskable.png?v=5', './logo-trans.png?v=5', './logo-blanco.png?v=5', './logo-s-blanco.png?v=5', './fondo-login.jpg', './icon-180.png?v=5', './vendor/html2canvas.min.js', './vendor/jspdf.umd.min.js', './vendor/pdf-lib.min.js'];
 
 // Al instalarse una versión nueva NO se activa sola: se queda esperando y la
 // app enseña el cartel de «Actualizar». Antes se activaba y recargaba por su
