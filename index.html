@@ -3358,7 +3358,7 @@ function economiaHTML(o) {
       </div>
       ${pct != null ? barra(pct, sem.color) : ''}
       ${Number(e.dias_sin_coste) > 0 ? `<div class="tiny" style="margin-top:8px;color:var(--ambar-o)">${e.dias_sin_coste} jornada${e.dias_sin_coste > 1 ? 's' : ''} sin coste de personal: falta la tarifa de alguien en «Costes de personal».</div>` : ''}
-      ${(d.categorias || []).length > 1 ? `<div style="margin-top:12px"><div class="lbl" style="margin-bottom:4px">Por categoría</div>${d.categorias.map((c) => fila(esc(nombreCat(c.categoria)), euros2(c.venta_presupuestada), 'coste real ' + euros2((Number(c.coste_mano_obra_real) || 0) + (Number(c.coste_material_real) || 0)) + ' · ' + horas1(c.horas_reales) + (c.horas_previstas != null ? ' de ' + horas1(c.horas_previstas) : ''))).join('')}</div>` : ''}
+      ${(d.categorias || []).length > 1 ? `<div style="margin-top:12px"><div class="lbl" style="margin-bottom:4px">Por categoría</div>${d.categorias.map((c) => fila(esc(nombreCatPresu(c.categoria)), euros2(c.venta_presupuestada), 'coste real ' + euros2((Number(c.coste_mano_obra_real) || 0) + (Number(c.coste_material_real) || 0)) + ' · ' + horas1(c.horas_reales) + (c.horas_previstas != null ? ' de ' + horas1(c.horas_previstas) : ''))).join('')}</div>` : ''}
     </div>
     <div class="card" style="padding:12px 15px;margin-top:10px">
       <div class="row" style="justify-content:space-between;align-items:center">
@@ -3366,7 +3366,7 @@ function economiaHTML(o) {
         <button class="pill" data-a="enlazarPresu" data-id="${o.id}" style="padding:7px 12px;font-size:12px">Enlazar</button>
       </div>
       ${pres.length ? pres.map((p) => `<div class="row g8" style="align-items:center;padding:9px 0;border-bottom:1px solid var(--l1)">
-          <div class="grow"><div style="font:500 14px var(--sans)">${esc(nombreCat(p.categoria))}</div><div class="tiny" style="margin-top:2px">${esc((p.visita && p.visita.codigo) || '')}</div></div>
+          <div class="grow"><div style="font:500 14px var(--sans)">${esc(nombreCatPresu(p.categoria))}</div><div class="tiny" style="margin-top:2px">${esc((p.visita && p.visita.codigo) || '')}</div></div>
           <span class="num" style="font-size:16px;white-space:nowrap">${euros2(p.total_venta)}</span>
           <button class="pill" data-a="desenlazarPresu" data-id="${p.id}" data-obra="${o.id}" style="padding:6px 10px;font-size:11px;background:var(--l1);color:var(--tinta)">Quitar</button></div>`).join('')
         : '<div class="sub" style="margin-top:6px">Ninguno todavía. Enlaza el presupuesto que aceptó el cliente para comparar con lo real.</div>'}
@@ -3374,11 +3374,11 @@ function economiaHTML(o) {
 }
 function presuListaHTML(s) {
   const q = sinTildes(V.presuBuscar);
-  const filas = (s.filas || []).filter((p) => !p.obra_id || p.obra_id === s.obraId).filter((p) => !q || sinTildes([(p.cliente || {}).nombre, (p.visita || {}).codigo, nombreCat(p.categoria)].join(' ')).includes(q));
+  const filas = (s.filas || []).filter((p) => !p.obra_id || p.obra_id === s.obraId).filter((p) => !q || sinTildes([(p.cliente || {}).nombre, (p.visita || {}).codigo, nombreCatPresu(p.categoria)].join(' ')).includes(q));
   if (s.error) return `<div class="sub">${esc(s.error)}</div>`;
   if (!s.filas) return '<div class="sub">Cargando…</div>';
   if (!filas.length) return '<div class="sub">Ningún presupuesto con eso.</div>';
-  return filas.slice(0, 60).map((p) => `<button class="fila-obra" data-a="enlazarPresuElegir" data-id="${p.id}" ${s.busy ? 'disabled' : ''}>${esc((p.cliente || {}).nombre || 'Sin cliente')} · ${esc(nombreCat(p.categoria))}<small>${esc((p.visita || {}).codigo || '')} · ${euros2(p.total_venta)} · ${esc(fechaCorta(p.created_at))}${p.obra_id ? ' · ya enlazado' : ''}</small></button>`).join('');
+  return filas.slice(0, 60).map((p) => `<button class="fila-obra" data-a="enlazarPresuElegir" data-id="${p.id}" ${s.busy ? 'disabled' : ''}>${esc((p.cliente || {}).nombre || 'Sin cliente')} · ${esc(nombreCatPresu(p.categoria))}<small>${esc((p.visita || {}).codigo || '')} · ${euros2(p.total_venta)} · ${esc(fechaCorta(p.created_at))}${p.obra_id ? ' · ya enlazado' : ''}</small></button>`).join('');
 }
 A.enlazarPresu = async (obraId) => {
   V.sheet = { tipo: 'enlazarPresu', obraId, filas: null, error: null, busy: false }; V.presuBuscar = ''; render();
@@ -6769,8 +6769,10 @@ const PASOS_VISITA = ['Cliente', 'El inmueble', '¿Qué se presupuesta?', 'Ficha
 const KEY_VISITA = 'bensol.visita.borrador';
 const CAMPOS_COMUN = vSchemas.COMUN.secciones.flatMap((s) => s.campos);
 // Categorías de BENSOL para presupuestos subidos en PDF (no tienen ficha de visita ni motor).
-const CATS_PDF = [{ key: 'obra', nombre: 'Obra / reforma' }, { key: 'instalaciones', nombre: 'Instalaciones' }, { key: 'mantenimiento', nombre: 'Mantenimiento' }];
+const CATS_PDF = [{ key: 'obra', nombre: 'Obra / instalaciones' }, { key: 'instalaciones', nombre: 'Instalaciones' }, { key: 'mantenimiento', nombre: 'Mantenimiento' }];
 const nombreCat = (c) => (vSchemas.CATEGORIAS.concat(CATS_PDF).find((x) => x.key === c) || { nombre: c }).nombre;
+// Nombre de una categoría de PRESUPUESTO (la clave `obra` se ve «Obra / instalaciones»).
+const nombreCatPresu = (c) => (CATS_PDF.concat(vSchemas.CATEGORIAS).find((x) => x.key === c) || { nombre: c }).nombre;
 const msgError = (e) => (e && e.message) || 'error desconocido';
 const inicialesCli = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
 const tipoCliente = (c) => (c && c.tl_tipo === 'company' ? 'Empresa' : 'Particular');
@@ -9247,7 +9249,7 @@ function presuCategoriaSheetHTML(s) {
   return `<div class="sheet"><div>
     <div style="font:600 25px/1.15 var(--cond)">Categoría del presupuesto</div>
     <div class="tiny" style="margin-top:6px">Cambia la cabecera del PDF y cómo se agrupan las líneas. Las líneas y los precios no se tocan. Si ya está en Teamleader, la oportunidad se mueve al embudo de la categoría nueva.</div>
-    <div class="lista-obras" style="margin-top:12px">${vSchemas.CATEGORIAS.map((c) => `<button class="fila-obra" data-a="presuCatDe" data-cat="${c.key}" ${s.busy ? 'disabled' : ''}>${esc(c.nombre)}${d && d.categoria === c.key ? '<small>✓ la de ahora</small>' : ''}</button>`).join('')}</div>
+    <div class="lista-obras" style="margin-top:12px">${vSchemas.CATEGORIAS.filter((c) => !c.oculto || (d && d.categoria === c.key)).map((c) => `<button class="fila-obra" data-a="presuCatDe" data-cat="${c.key}" ${s.busy ? 'disabled' : ''}>${esc(nombreCatPresu(c.key))}${d && d.categoria === c.key ? '<small>✓ la de ahora</small>' : ''}</button>`).join('')}</div>
     ${s.busy ? '<div class="sub" style="margin-top:8px;color:var(--verde-o)">Cambiando…</div>' : ''}
     <button class="btn btn-gris" data-a="cerrarSheet" style="border-radius:99px;margin-top:14px">Cancelar</button>
   </div></div>`;
@@ -9891,7 +9893,7 @@ function vPresuNuevo() {
       <div class="tiny" style="margin-top:7px"><span data-a="presuCliAbrir" data-modo="suelto" style="color:var(--verde-o);cursor:pointer;text-decoration:underline">Buscar el cliente en la app o en Teamleader</span> (también empresas)</div>
 
       <div class="lbl" style="margin:16px 0 8px">Qué se presupuesta</div>
-      <div class="wrap">${vSchemas.CATEGORIAS.map((c) => `<div class="chip ${f.cat === c.key ? 'sel' : ''}" data-a="presuSueltoChip" data-k="cat" data-v="${c.key}">${esc(c.nombre)}</div>`).join('')}</div>
+      <div class="wrap">${vSchemas.CATEGORIAS.map((c) => `<div class="chip ${f.cat === c.key ? 'sel' : ''}" data-a="presuSueltoChip" data-k="cat" data-v="${c.key}">${esc(nombreCatPresu(c.key))}</div>`).join('')}</div>
 
       <div class="lbl" style="margin:16px 0 8px">Cómo se hace</div>
       <div class="wrap">${CATS_CON_MOTOR.includes(f.cat) ? `<div class="chip ${!f.libre ? 'sel' : ''}" data-a="presuSueltoChip" data-k="libre" data-v="">Con el motor</div>` : ''}<div class="chip ${f.libre ? 'sel' : ''}" data-a="presuSueltoChip" data-k="libre" data-v="1">Libre, de cero</div></div>
@@ -13698,7 +13700,7 @@ function sheet() {
       <div class="lbl" style="margin:14px 0 6px">Título (lo ve el cliente)</div>
       <input class="inp" data-f="presuExtTitulo" value="${esc(s.titulo)}" placeholder="Reforma de baño · C/ …">
       <div class="lbl" style="margin:14px 0 8px">Tipo</div>
-      <div class="wrap">${CATS_PDF.concat(vSchemas.CATEGORIAS).map((k) => `<span class="chip ${s.cat === k.key ? 'on' : ''}" data-a="presuExternoCat" data-k="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div>
+      <div class="wrap">${CATS_PDF.concat(vSchemas.CATEGORIAS).filter((k, i, a) => a.findIndex((x) => x.key === k.key) === i).filter((k) => !k.oculto || s.cat === k.key).map((k) => `<span class="chip ${s.cat === k.key ? 'on' : ''}" data-a="presuExternoCat" data-k="${k.key}" style="cursor:pointer">${esc(k.nombre)}</span>`).join('')}</div>
       <div class="row g8" style="margin-top:12px">
         <div class="grow"><div class="lbl">Importe sin IVA</div><input class="inp" data-f="presuExtImporte" value="${esc(s.importe)}" inputmode="decimal" placeholder="sale en el correo" style="margin-top:6px"></div>
         <div class="grow"><div class="lbl">Nº de presupuesto</div><input class="inp" data-f="presuExtTl" value="${esc(s.tl)}" placeholder="opcional" style="margin-top:6px"></div>

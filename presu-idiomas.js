@@ -23,7 +23,7 @@ export const fechaIdioma = (iso, idioma) => new Date(iso).toLocaleDateString(LOC
 export const fechaLargaIdioma = (iso, idioma) => new Date(iso).toLocaleDateString(LOCALES[idiomaValido(idioma)], { day: 'numeric', month: 'long', year: 'numeric' });
 
 const CATEGORIAS = {
-  es: { obra: 'Visita de obra - Instalaciones', solar: 'Paneles solares', aerotermia: 'Aerotermia', aire_acondicionado: 'Aire acondicionado', electricidad: 'Electricidad' },
+  es: { obra: 'Obra / instalaciones', solar: 'Paneles solares', aerotermia: 'Aerotermia', aire_acondicionado: 'Aire acondicionado', electricidad: 'Electricidad' },
   en: { obra: 'Building work / refurbishment', solar: 'Solar PV', aerotermia: 'Aerothermal heat pump', aire_acondicionado: 'Air conditioning', electricidad: 'Electrical installation' },
   ca: { obra: 'Obra / reforma', solar: 'Plaques solars', aerotermia: 'Aerotèrmia', aire_acondicionado: 'Aire condicionat', electricidad: 'Electricitat' },
   de: { obra: 'Bau / Sanierung', solar: 'Photovoltaik', aerotermia: 'Luft-Wasser-Wärmepumpe', aire_acondicionado: 'Klimaanlage', electricidad: 'Elektroinstallation' },
