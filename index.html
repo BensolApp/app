@@ -872,10 +872,10 @@ function mapObraDeDB(row) {
 
 // --- código, estado y presentación de la obra (PLAN-OBRAS-PLANIFICACION, etapa A) ---
 const OBRA_ESTADOS = { planificada: 'Planificada', en_curso: 'En curso', finalizada: 'Finalizada', cerrada: 'Cerrada' };
-const OBRA_CATEGORIAS = [['AE', 'Aerotermia'], ['FV', 'Fotovoltaica'], ['AC', 'Aire acond.'], ['EL', 'Instalación eléctrica'], ['BAT', 'Baterías'], ['CC', 'Cargador de coche'], ['OT', 'Otro']];
+const OBRA_CATEGORIAS = [['RI', 'Reforma integral'], ['ON', 'Obra nueva'], ['RF', 'Rehabilitación de fachada'], ['IN', 'Instalaciones'], ['MT', 'Mantenimiento'], ['AE', 'Aerotermia'], ['FV', 'Fotovoltaica'], ['AC', 'Aire acond.'], ['EL', 'Instalación eléctrica'], ['BAT', 'Baterías'], ['CC', 'Cargador de coche'], ['OT', 'Otro']];
 const OBRA_CATS = OBRA_CATEGORIAS.map((x) => x[0]);
 // 14-11-2026: heredadas de la etapa solar; no se ofrecen en obras nuevas (solo si la obra ya las lleva).
-const OBRA_CATS_OCULTAS = ['AE', 'FV', 'AC', 'EL'];
+const OBRA_CATS_OCULTAS = ['AE', 'FV', 'AC', 'EL', 'BAT', 'CC'];
 // El nombre de una categoría en una obra: el «otro» lleva el que se escribió.
 const catObraNombre = (k, o) => (k === 'OT' && o && o.categoriaOtra ? o.categoriaOtra : (OBRA_CATEGORIAS.find((x) => x[0] === k) || [k, k])[1]);
 const estadoObraDeDB = (v) => (v in OBRA_ESTADOS ? v : v === 'Cerrada' ? 'cerrada' : 'en_curso');
@@ -2722,7 +2722,7 @@ function avanceObra(obraId) {
   const pct = Math.round(fs.reduce((t, f) => t + (Number(f.pct) || 0), 0) / fs.length);
   return { pct, hechas: fs.filter((f) => Number(f.pct) === 100).length, total: fs.length };
 }
-const CAT_NOMBRE = { AE: 'Aerotermia', FV: 'Fotovoltaica', AC: 'Aire acondicionado', EL: 'Instalación eléctrica', BAT: 'Baterías', CC: 'Cargador de coche', OT: 'Otro' };
+const CAT_NOMBRE = { RI: 'Reforma integral', ON: 'Obra nueva', RF: 'Rehabilitación de fachada', IN: 'Instalaciones', MT: 'Mantenimiento', AE: 'Aerotermia', FV: 'Fotovoltaica', AC: 'Aire acondicionado', EL: 'Instalación eléctrica', BAT: 'Baterías', CC: 'Cargador de coche', OT: 'Otro' };
 // Las fases agrupadas: comunes de arranque, cada categoría, comunes de cierre.
 function fasesAgrupadas(obraId) {
   const fs = fasesDe(obraId);
@@ -2998,7 +2998,7 @@ function vFasesPlantillas() {
   <div class="scroll pad pb-nav">
     ${V.plantillasError ? `<div class="card"><div class="sub">${faltaEtapa63(V.plantillasError) ? 'Falta ejecutar sql/etapa63 en Supabase.' : esc(V.plantillasError)}</div></div>` : !ts ? '<div class="card"><div class="sub">Cargando…</div></div>'
       : grupo('Preparación (todas las obras)', ts.filter((t) => !t.categoria && !t.al_final), '')
-        + ['FV', 'AE', 'AC', 'EL', 'BAT', 'CC'].map((k) => grupo(CAT_NOMBRE[k], ts.filter((t) => t.categoria === k), k)).join('')
+        + ['RI', 'ON', 'RF', 'IN', 'MT', 'FV', 'AE', 'AC', 'EL', 'BAT', 'CC'].map((k) => grupo(CAT_NOMBRE[k], ts.filter((t) => t.categoria === k), k)).join('')
         + grupo('Cierre (todas las obras)', ts.filter((t) => !t.categoria && t.al_final), '')}
   </div>`;
 }
@@ -10966,7 +10966,7 @@ function vPresupuestoVer() {
 }
 // El seguimiento del presupuesto, en su ficha: los pasos de crearlo a la
 // respuesta del cliente, y los botones para marcar cada uno (sql/etapa64).
-const CAT_A_OBRA = { aerotermia: 'AE', solar: 'FV', aire_acondicionado: 'AC', electricidad: 'EL' };
+const CAT_A_OBRA = { aerotermia: 'AE', solar: 'FV', aire_acondicionado: 'AC', electricidad: 'EL', obra: 'RI', instalaciones: 'IN', mantenimiento: 'MT' };
 /* ---------- enviar el presupuesto al cliente por correo (27-10-2026) ---------- */
 A.presuEnviarAbrir = async () => {
   const d = V.presuVer && V.presuVer.datos; if (!d) return;
@@ -13805,7 +13805,7 @@ function sheet() {
     </div></div>`;
   }
   if (s.tipo === 'plantillaNueva') {
-    const cats = ['FV', 'AE', 'AC', 'EL', 'BAT', 'CC'];
+    const cats = ['RI', 'ON', 'RF', 'IN', 'MT', 'FV', 'AE', 'AC', 'EL', 'BAT', 'CC'];
     return `<div class="sheet"><div>
       <div style="font:600 23px/1.15 var(--cond)">Nueva subfase de plantilla</div>
       <div class="lbl" style="margin:14px 0 6px">Nombre</div>
