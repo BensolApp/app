@@ -2993,7 +2993,7 @@ function vFasesPlantillas() {
   return `<div class="hdr">
     <div class="volver" data-a="ir" data-v="ajustes">‹ Ajustes</div>
     <div class="h1" style="margin-top:6px">Fases por categoría</div>
-    <div class="sub" style="margin-top:6px">Las fases que lleva cada obra nueva según lo que tenga (aerotermia, fotovoltaica, aire). Las de «Preparación» y «Cierre» las llevan todas. Quitar una no la borra de las obras que ya la tienen.</div>
+    <div class="sub" style="margin-top:6px">Las fases que lleva cada obra nueva según lo que tenga (reforma integral, obra nueva, rehabilitación de fachada, instalaciones, mantenimiento). Las de «Preparación» y «Cierre» las llevan todas. Quitar una no la borra de las obras que ya la tienen.</div>
   </div>
   <div class="scroll pad pb-nav">
     ${V.plantillasError ? `<div class="card"><div class="sub">${faltaEtapa63(V.plantillasError) ? 'Falta ejecutar sql/etapa63 en Supabase.' : esc(V.plantillasError)}</div></div>` : !ts ? '<div class="card"><div class="sub">Cargando…</div></div>'
@@ -5514,7 +5514,7 @@ function vAlta() {
     <div style="margin-bottom:14px"><div class="lbl" style="margin-bottom:7px">Qué lleva la obra</div>
       <div class="wrap">${OBRA_CATEGORIAS.filter(([k]) => !OBRA_CATS_OCULTAS.includes(k) || (d.categorias || []).includes(k) || ((d.id && (obraById(d.id) || {}).categorias) || []).includes(k)).map(([k, l]) => `<span class="chip ${(d.categorias || []).includes(k) ? 'on' : ''}" data-a="obraCat" data-k="${k}" style="cursor:pointer">${k === 'OT' ? l : k + ' · ' + l}</span>`).join('')}</div>
       ${(d.categorias || []).includes('OT') ? `<input class="inp" data-f="categoriaOtra" value="${esc(d.categoriaOtra || '')}" placeholder="¿Qué es? Domótica, pérgola, reforma…" style="margin-top:8px">` : ''}
-      <div class="tiny" style="margin-top:6px">Puede llevar varias: una casa con aerotermia y placas es una sola obra. «Otro» no trae fases: se le añaden desde la ficha.</div></div>` : ''}
+      <div class="tiny" style="margin-top:6px">Puede llevar varias: una vivienda con reforma integral e instalaciones es una sola obra. «Otro» no trae fases: se le añaden desde la ficha.</div></div>` : ''}
     ${campos.map(([k, l, ph]) => `<div style="margin-bottom:14px"><div class="lbl" style="margin-bottom:7px">${l}</div>
       <input class="inp" data-f="${k}" value="${esc(d[k] || '')}" placeholder="${ph}" ${k === 'email' ? 'type="email" inputmode="email" autocapitalize="off"' : ''}></div>`).join('')}
     ${obraCRMHTML(d)}
@@ -13777,7 +13777,7 @@ function sheet() {
     const o = obraById(s.obraId);
     return `<div class="sheet"><div>
       <div style="font:600 23px/1.15 var(--cond)">Nueva fase en ${esc(codigoObra(o) || (o || {}).titulo || '')}</div>
-      <div class="sub" style="margin-top:6px">Una fase es un bloque del proyecto, como Aerotermia o Fotovoltaica. Dentro van sus subfases.</div>
+      <div class="sub" style="margin-top:6px">Una fase es un bloque del proyecto, como Albañilería o Instalaciones. Dentro van sus subfases.</div>
       <div class="lbl" style="margin:14px 0 6px">Nombre de la fase</div>
       <input class="inp" data-f="faseNombre" value="${esc(s.nombre)}" placeholder="Fontanería, Piscina, Obra civil…">
       <div class="lbl" style="margin:12px 0 6px">Subfases · una por línea</div>
@@ -13842,7 +13842,7 @@ function sheet() {
     return `<div class="sheet"><div>
       <div style="font:600 23px/1.15 var(--cond)">Nombre del presupuesto</div>
       <div class="sub" style="margin-top:6px">Es el que sale en la lista, en el tablero y en la ficha del cliente.${s.enTL ? ' En Teamleader la oferta mantiene su nombre.' : ''}</div>
-      <input class="inp" data-f="presuTituloTxt" value="${esc(s.texto || '')}" maxlength="200" placeholder="Cliente · Fotovoltaica 10 paneles" style="margin-top:12px">
+      <input class="inp" data-f="presuTituloTxt" value="${esc(s.texto || '')}" maxlength="200" placeholder="Cliente · Reforma integral vivienda" style="margin-top:12px">
       <div class="row g8" style="margin-top:18px">
         <button class="btn btn-gris" data-a="cerrarSheet" style="border-radius:99px">Cancelar</button>
         <button class="btn" data-a="presuTituloGuardar" style="font-size:14px" ${s.busy ? 'disabled' : ''}>${s.busy ? 'Guardando…' : 'Guardar'}</button>
