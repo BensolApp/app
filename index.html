@@ -874,6 +874,8 @@ function mapObraDeDB(row) {
 const OBRA_ESTADOS = { planificada: 'Planificada', en_curso: 'En curso', finalizada: 'Finalizada', cerrada: 'Cerrada' };
 const OBRA_CATEGORIAS = [['AE', 'Aerotermia'], ['FV', 'Fotovoltaica'], ['AC', 'Aire acond.'], ['EL', 'Instalación eléctrica'], ['BAT', 'Baterías'], ['CC', 'Cargador de coche'], ['OT', 'Otro']];
 const OBRA_CATS = OBRA_CATEGORIAS.map((x) => x[0]);
+// 14-11-2026: heredadas de la etapa solar; no se ofrecen en obras nuevas (solo si la obra ya las lleva).
+const OBRA_CATS_OCULTAS = ['AE', 'FV', 'AC', 'EL'];
 // El nombre de una categoría en una obra: el «otro» lleva el que se escribió.
 const catObraNombre = (k, o) => (k === 'OT' && o && o.categoriaOtra ? o.categoriaOtra : (OBRA_CATEGORIAS.find((x) => x[0] === k) || [k, k])[1]);
 const estadoObraDeDB = (v) => (v in OBRA_ESTADOS ? v : v === 'Cerrada' ? 'cerrada' : 'en_curso');
@@ -2644,7 +2646,7 @@ async function ajustarFasesAlCambiarCategorias(obraId, categorias) {
 A.guardarObra = async () => {
   const d = V.draft;
   if (!(d.nombre || '').trim() && !(d.cliente || '').trim()) { avisar('Pon al menos el cliente o el nombre de la obra.'); return; }
-  if (columnaObra('categorias') && !(d.categorias || []).length) { avisar('Marca qué lleva la obra: aerotermia, fotovoltaica o aire.'); return; }
+  if (columnaObra('categorias') && !(d.categorias || []).length) { avisar('Marca qué lleva la obra (si es una reforma, «Otro» y escribe qué es).'); return; }
   if (!navigator.onLine) { avisar('Sin conexión — la obra no se ha guardado'); return; }
   const campos = {
     nombre: (d.nombre || '').trim() || (d.cliente || '').trim(),
@@ -5279,7 +5281,7 @@ function vAlta() {
       <div class="tiny" style="margin-top:5px">Correlativo y único. Lo pone el sistema; no se puede cambiar.</div>
     </div>
     <div style="margin-bottom:14px"><div class="lbl" style="margin-bottom:7px">Qué lleva la obra</div>
-      <div class="wrap">${OBRA_CATEGORIAS.map(([k, l]) => `<span class="chip ${(d.categorias || []).includes(k) ? 'on' : ''}" data-a="obraCat" data-k="${k}" style="cursor:pointer">${k === 'OT' ? l : k + ' · ' + l}</span>`).join('')}</div>
+      <div class="wrap">${OBRA_CATEGORIAS.filter(([k]) => !OBRA_CATS_OCULTAS.includes(k) || (d.categorias || []).includes(k) || ((d.id && (obraById(d.id) || {}).categorias) || []).includes(k)).map(([k, l]) => `<span class="chip ${(d.categorias || []).includes(k) ? 'on' : ''}" data-a="obraCat" data-k="${k}" style="cursor:pointer">${k === 'OT' ? l : k + ' · ' + l}</span>`).join('')}</div>
       ${(d.categorias || []).includes('OT') ? `<input class="inp" data-f="categoriaOtra" value="${esc(d.categoriaOtra || '')}" placeholder="¿Qué es? Domótica, pérgola, reforma…" style="margin-top:8px">` : ''}
       <div class="tiny" style="margin-top:6px">Puede llevar varias: una casa con aerotermia y placas es una sola obra. «Otro» no trae fases: se le añaden desde la ficha.</div></div>` : ''}
     ${campos.map(([k, l, ph]) => `<div style="margin-bottom:14px"><div class="lbl" style="margin-bottom:7px">${l}</div>
@@ -8507,7 +8509,7 @@ A.presuFusionQuitar = (c) => {
 function tituloDelSuelto() {
   const f = V.suelto || {};
   const quien = String(f.titulo || f.cliente || '').trim();
-  return nombreCat(f.cat) + (quien ? ' · ' + quien : '');
+  return nombreCatPresu(f.cat) + (quien ? ' · ' + quien : '');
 }
 
 A.presuDto = (v) => {
@@ -8882,9 +8884,11 @@ const SISTEMAS_AIRE = [
 ];
 
 const presuNuevoVacio = () => ({
-  cat: 'aire_acondicionado', clienteId: null, cliente: '', titulo: '',
+  // 14-11-2026: por defecto «Obra / instalaciones», sin motor (libre, de cero); el motor
+  // de aire/aerotermia/solar sigue en el código pero ya no se ofrece en la interfaz.
+  cat: 'obra', clienteId: null, cliente: '', titulo: '',
   // libre (6-11-2026): sin datos ni motor, se monta de cero con líneas
-  libre: false,
+  libre: true,
   // aire: una fila por equipo interior, con sus m² y sus metros de línea
   // hasta la exterior. Con los m² el motor elige la máquina; con los metros,
   // el tubo de más y el gas.
@@ -9893,13 +9897,13 @@ function vPresuNuevo() {
       <div class="tiny" style="margin-top:7px"><span data-a="presuCliAbrir" data-modo="suelto" style="color:var(--verde-o);cursor:pointer;text-decoration:underline">Buscar el cliente en la app o en Teamleader</span> (también empresas)</div>
 
       <div class="lbl" style="margin:16px 0 8px">Qué se presupuesta</div>
-      <div class="wrap">${vSchemas.CATEGORIAS.map((c) => `<div class="chip ${f.cat === c.key ? 'sel' : ''}" data-a="presuSueltoChip" data-k="cat" data-v="${c.key}">${esc(nombreCatPresu(c.key))}</div>`).join('')}</div>
+      <div class="wrap">${vSchemas.CATEGORIAS.filter((c) => !c.oculto).map((c) => `<div class="chip ${f.cat === c.key ? 'sel' : ''}" data-a="presuSueltoChip" data-k="cat" data-v="${c.key}">${esc(nombreCatPresu(c.key))}</div>`).join('')}</div>
 
       <div class="lbl" style="margin:16px 0 8px">Cómo se hace</div>
       <div class="wrap">${CATS_CON_MOTOR.includes(f.cat) ? `<div class="chip ${!f.libre ? 'sel' : ''}" data-a="presuSueltoChip" data-k="libre" data-v="">Con el motor</div>` : ''}<div class="chip ${f.libre ? 'sel' : ''}" data-a="presuSueltoChip" data-k="libre" data-v="1">Libre, de cero</div></div>
-      ${f.libre ? `<div class="tiny" style="margin-top:8px">${CATS_CON_MOTOR.includes(f.cat) ? 'Sin datos que rellenar: el presupuesto empieza vacío y lo montas tú línea a línea, del catálogo o creando conceptos nuevos.' : 'Todavía no hay reglas para ' + esc(nombreCat(f.cat)) + ': se monta línea a línea, del catálogo o creando conceptos nuevos.'}</div>
+      ${f.libre ? `<div class="tiny" style="margin-top:8px">${CATS_CON_MOTOR.includes(f.cat) ? 'Sin datos que rellenar: el presupuesto empieza vacío y lo montas tú línea a línea, del catálogo o creando conceptos nuevos.' : 'Todavía no hay reglas para ' + esc(nombreCatPresu(f.cat)) + ': se monta línea a línea, del catálogo o creando conceptos nuevos.'}</div>
       <div class="lbl" style="margin:16px 0 8px">Título del presupuesto (opcional)</div>
-      <input class="inp" data-f="presuCampo" data-k="titulo" value="${esc(String(f.titulo || ''))}" placeholder="${esc(nombreCat(f.cat))} · ${esc(f.cliente || 'cliente')}">`
+      <input class="inp" data-f="presuCampo" data-k="titulo" value="${esc(String(f.titulo || ''))}" placeholder="${esc(nombreCatPresu(f.cat))} · ${esc(f.cliente || 'cliente')}">`
       : f.cat === 'aerotermia' ? camposAeroHTML(f) : f.cat === 'solar' ? camposSolarHTML(f) : camposAireHTML(f)}
 
       ${f.libre && p.datos && p.cat === f.cat ? '' : `<button class="btn btn-verde" data-a="presuCalcular" data-c="${esc(f.cat)}" style="margin-top:16px" ${p.cargando ? 'disabled' : ''}>${p.cargando ? (f.libre ? 'Preparando…' : 'Calculando…') : (f.libre ? 'Empezar de cero' : 'Calcular')}</button>`}
